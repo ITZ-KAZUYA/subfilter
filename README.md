@@ -15,7 +15,7 @@ Testers are wanted. Especially to test the project with more languages.
 
 ## Acknowledgment
 - This project use code base on the original [Subadub extension](https://github.com/rsimmons/subadub). MIT License.
-- The lists of stop words are from [Alir3z4/stop-words](https://github.com/Alir3z4/stop-words) project. CC BY 4.0 License.
+- The lists of stop words are from [Alir3z4/stop-words](https://github.com/Alir3z4/stop-words) project. CC BY 4.0 License and from [stopwords-iso](https://github.com/stopwords-iso/stopwords-iso). MIT License.
 - For Spanish text is used [Lorca library](https://github.com/dmarman/lorca). MIT License.
 
 # Subadub (original)
