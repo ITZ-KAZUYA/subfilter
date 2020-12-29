@@ -1,4 +1,11 @@
-# Subadub
+# My Changes
+
+This project ***Subadub focus on listening*** edition is modified version of ***Subadub*** browser extension. 
+It is designed for people with focus on practising listening skills. 
+Subtitles did not contain whole text. Some letters/words are missing.
+This force you to focus more on listening.
+
+# Subadub (original)
 
 Subadub is a browser extension for Chrome and Firefox that enhances Netflix subtitles for foreign language study.
 

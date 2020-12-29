@@ -79,6 +79,21 @@ scriptElem.text = `
     return simpleText;
   }
 
+  function makeTextBlurred(s) {
+    let blurredText = s;
+
+    const lines = s.split('\\n');
+    const newLines = [];
+    for (const line of lines) {
+      let blurred = line.replace(/\\W\\w+/ig, "_ ");
+      console.log({li: line, lo: blurred});
+      newLines.push(blurred);
+    }
+
+    blurredText = newLines.join('\\n');
+    return blurredText;
+  }
+
   function extractMovieTextTracks(movieObj) {
     const movieId = movieObj.movieId;
 
@@ -360,7 +375,9 @@ scriptElem.text = `
         for (const cue of track.activeCues) {
           const cueElem = document.createElement('div');
           cueElem.style.cssText = 'background: rgba(0,0,0,0.8); white-space: pre-wrap; padding: 0.2em 0.3em; margin: 10px auto; width: fit-content; width: -moz-fit-content; pointer-events: auto';
-          cueElem.innerHTML = vttTextToSimple(cue.text, true); // may contain simple tags like <i> etc.
+
+          var simpleText = vttTextToSimple(cue.text, true); // may contain simple tags like <i> etc.
+          cueElem.innerHTML = makeTextBlurred(simpleText);  // for language practice make some part of the text not visible
           customSubsElem.appendChild(cueElem);
         }
       }, false);
