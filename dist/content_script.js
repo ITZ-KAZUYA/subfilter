@@ -85,8 +85,8 @@ scriptElem.text = `
     const lines = s.split('\\n');
     const newLines = [];
     for (const line of lines) {
-      let blurred = transformEasyRecursive(line); //replace(/\\W\\w+/ig, "_ ");
-      console.log({li: line, lo: blurred});
+      let blurred = vttTransformEasyRecursive(line);
+      // console.log({li: line, lo: blurred});
       newLines.push(blurred);
     }
 
@@ -95,14 +95,14 @@ scriptElem.text = `
   }
 
 // recursive transformational function
-function transformEasyRecursive(s) {
+function vttTransformEasyRecursive(s) {
   let transformed;
 
   if (!s) { return s; } // sometimes s is empty string
 
   // sometimes subtitles begins with a dash. In that case we keep the dash and transform rest of the string
   if (s.charAt(0) == "-") {
-    transformed = "-" + transformEasyRecursive(s.substring(1));
+    transformed = "-" + vttTransformEasyRecursive(s.substring(1));
   } else if (s.match(/<[^>]+>/)) { // looking for < anything in angle brackets >
   // sometimes subtitles contains html markup, usualy <b>, <i>, <u> and </b>, </i>, </u>. we keep text inside <>  without change and transform the rest
   // there can be more marks in one text, and not necesary in pairs
@@ -111,7 +111,7 @@ function transformEasyRecursive(s) {
     transformed = s.replace(/([^<>]*)(<[^<>]+>)([^<>]*)/g,
       function(m,p1,p2,p3,o,s,g) { // m contains one whole match, p1 text before <angle bracket>, p2 text inside <angle bracket> including brackets, p3 text after <angle bracket>
         //console.log({m:m,p1:p1,p2:p2,p3:p3,o:o,s:s,g:g});
-        return transformEasyRecursive(p1) + p2 + transformEasyRecursive(p3);
+        return vttTransformEasyRecursive(p1) + p2 + vttTransformEasyRecursive(p3);
       }
   );
 
@@ -119,7 +119,7 @@ function transformEasyRecursive(s) {
   // sometimes subtitles contains text in square backets like [this], we keep the text inside brackets without change and transform the rest
 
     let results = s.match(/(.*)(\\[[^\\]]+\\])(.*)/); // results[1] contains text before [backets], results[2] containts text inside [backets] including brackets, results[3] text after [backets]
-    transformed = transformEasyRecursive(results[1]) + results[2] + transformEasyRecursive(results[3]);
+    transformed = vttTransformEasyRecursive(results[1]) + results[2] + vttTransformEasyRecursive(results[3]);
   }
   else
   {
@@ -245,7 +245,7 @@ function transformEasyRecursive(s) {
     }
   }
 
-  function downloadSRT() {
+  function downloadSRT(blurred) { // if blurred = true, then download blurred version subtitles 
     function formatTime(t) {
       const date = new Date(0, 0, 0, 0, 0, 0, t*1000);
       const hours = date.getHours().toString().padStart(2, '0');
@@ -280,7 +280,10 @@ function transformEasyRecursive(s) {
     const srtChunks = [];
     let idx = 1;
     for (const cue of trackElem.track.cues) {
-      const cleanedText = vttTextToSimple(cue.text, true);
+      let cleanedText = vttTextToSimple(cue.text, true);
+
+      if (blurred) { cleanedText = vttTransformEasyRecursive(cleanedText); }
+
       srtChunks.push(idx + '\\n' + formatTime(cue.startTime) + ' --> ' + formatTime(cue.endTime) + '\\n' + cleanedText + '\\n\\n');
       idx++;
     }
@@ -356,7 +359,7 @@ function transformEasyRecursive(s) {
       downloadButtonElem.addEventListener('click', function(e) {
         e.preventDefault();
         // console.log('download click');
-        downloadSRT();
+        downloadSRT(e.ctrlKey);
       }, false);
 
       const panelElem = document.createElement('div');
