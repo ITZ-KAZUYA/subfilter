@@ -79,20 +79,7 @@ scriptElem.text = `
     return simpleText;
   }
 
-  function makeTextBlurred(s) {
-    let blurredText = s;
-
-    const lines = s.split('\\n');
-    const newLines = [];
-    for (const line of lines) {
-      let blurred = vttTransform(line);
-      // console.log({li: line, lo: blurred});
-      newLines.push(blurred);
-    }
-
-    blurredText = newLines.join('\\n');
-    return blurredText;
-  }
+  
 
   function extractMovieTextTracks(movieObj) {
     const movieId = movieObj.movieId;
@@ -206,7 +193,7 @@ scriptElem.text = `
     }
   }
 
-  function downloadSRT(blurred) { // if blurred = true, then download blurred version subtitles 
+  function downloadSRT(transformvtt) { // if transformvtt = true, then download transfomed subtitles version
     function formatTime(t) {
       const date = new Date(0, 0, 0, 0, 0, 0, t*1000);
       const hours = date.getHours().toString().padStart(2, '0');
@@ -243,7 +230,7 @@ scriptElem.text = `
     for (const cue of trackElem.track.cues) {
       let cleanedText = vttTextToSimple(cue.text, true);
 
-      if (blurred) { cleanedText = vttTransform(cleanedText); }
+      if (transformvtt && vttTransformMultiLine) { cleanedText = vttTransformMultiLine(cleanedText); }
 
       srtChunks.push(idx + '\\n' + formatTime(cue.startTime) + ' --> ' + formatTime(cue.endTime) + '\\n' + cleanedText + '\\n\\n');
       idx++;
@@ -379,8 +366,9 @@ scriptElem.text = `
           const cueElem = document.createElement('div');
           cueElem.style.cssText = 'background: rgba(0,0,0,0.8); white-space: pre-wrap; padding: 0.2em 0.3em; margin: 10px auto; width: fit-content; width: -moz-fit-content; pointer-events: auto';
 
-          var simpleText = vttTextToSimple(cue.text, true); // may contain simple tags like <i> etc.
-          cueElem.innerHTML = makeTextBlurred(simpleText);  // for language practice make some part of the text not visible
+          let simpleText = vttTextToSimple(cue.text, true); // may contain simple tags like <i> etc.
+          if (vttTransformMultiLine) { simpleText = vttTransformMultiLine(simpleText) } // for language practice make some parts of subtitles not visible
+          cueElem.innerHTML = simpleText;
           customSubsElem.appendChild(cueElem);
         }
       }, false);

@@ -1,8 +1,26 @@
 "use strict";
 
+// s contains multiline vtt cue text
+// process each line individually
+function vttTransformMultiLine(s) {
+    const lines = s.split('\n');
+    const newLines = [];
+    for (const line of lines) {
+      let transformed = vttTransform(line);
+      // console.log({li: line, lo: blurred});
+      newLines.push(transformed);
+    }
+
+    return newLines.join('\n');	
+}
+
+
+// General method for transforming one-line vtt text
+// Can switch between more specializes transformations
 function vttTransform(s) {
 	return vttTransformEasyRecursive(s);
 }
+
 
 // recursive transformational function
 function vttTransformEasyRecursive(s) {
