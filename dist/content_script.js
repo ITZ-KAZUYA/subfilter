@@ -228,7 +228,7 @@ scriptElem.text = `
     for (const cue of trackElem.track.cues) {
       let cleanedText = vttTextToSimple(cue.text, true);
 
-      if (transformvtt && vttTransformMultiLine) { cleanedText = vttTransformMultiLine(cleanedText); }
+      if (transformvtt && suboff && suboff.vttTransformMultiLine) { cleanedText = suboff.vttTransformMultiLine(cleanedText); }
 
       srtChunks.push(idx + '\\n' + formatTime(cue.startTime) + ' --> ' + formatTime(cue.endTime) + '\\n' + cleanedText + '\\n\\n');
       idx++;
@@ -314,7 +314,7 @@ scriptElem.text = `
       panelElem.appendChild(selectElem);
       panelElem.appendChild(downloadButtonElem);
 
-      if (vttCreateMethodSelector) { vttCreateMethodSelector(panelElem, {"style": "color: black; margin: 5px"}); }
+      if (suboff && suboff.createMethodSelector) { suboff.createMethodSelector(panelElem, {"style": "color: black; margin: 5px"}); }
 
       const containerElem = document.createElement('div');
       containerElem.id = SUBS_LIST_ELEM_ID;
@@ -367,7 +367,7 @@ scriptElem.text = `
           cueElem.style.cssText = 'background: rgba(0,0,0,0.8); white-space: pre-wrap; padding: 0.2em 0.3em; margin: 10px auto; width: fit-content; width: -moz-fit-content; pointer-events: auto';
 
           let simpleText = vttTextToSimple(cue.text, true); // may contain simple tags like <i> etc.
-          if (vttTransformMultiLine) { simpleText = vttTransformMultiLine(simpleText) } // for language practice make some parts of subtitles not visible
+          if (suboff && suboff.vttTransformMultiLine) { simpleText = suboff.vttTransformMultiLine(simpleText) } // for language practice make some parts of subtitles not visible
           cueElem.innerHTML = simpleText;
           customSubsElem.appendChild(cueElem);
         }

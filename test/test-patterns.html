@@ -104,7 +104,7 @@ function initEvents() {
 function initUI() {
 	initEvents();
 
-	vttCreateMethodSelector(document.getElementById("selector-container"), { "id" : "transformation-type", "class" : "form-select mb-3", "aria-label": "Select type of transformation", "style":"width:30%" });
+	suboff.createMethodSelector(document.getElementById("selector-container"), { "id" : "transformation-type", "class" : "form-select mb-3", "aria-label": "Select type of transformation", "style":"width:30%" });
 }
 initUI();
 
@@ -117,7 +117,7 @@ function process() {
 	document.getElementById("processed").innerHTML = "";
 
 	for (const line of lines) {
-		let transformedLine = vttTransform(line);
+		let transformedLine = suboff.vttTransform(line);
 
 		// do not forget to escape HTML output, change "<" into "&lt;""
 		output += "<tr><td>" + htmlEscape(line) + "</td><td>" + htmlEscape(transformedLine) + "</td></tr>";
