@@ -10,6 +10,7 @@ document.head.insertBefore(styleElem, document.head.firstChild);
 
 const scriptElem = document.createElement('script');
 scriptElem.text = `
+"use strict";
 (function initializeSubadub() {
   const POLL_INTERVAL_MS = 500;
   const MANIFEST_URL = "/manifest";
@@ -214,7 +215,7 @@ scriptElem.text = `
         srtFilenamePieces.push(elem.textContent);
       }
     }
-    let srcFilename;
+    let srtFilename;
     if (srtFilenamePieces.length) {
       srtFilename = srtFilenamePieces.join('-');
     } else {
@@ -564,7 +565,7 @@ scriptElem.text = `
 document.head.insertBefore(scriptElem, document.head.firstChild);
 
 const scriptElem2 = document.createElement('script');
-scriptElem2.src = chrome.extension.getURL('vtt_transformations.js');
+scriptElem2.src = chrome.extension.getURL('suboff.js');
 document.head.insertBefore(scriptElem2, document.head.firstChild);
 
 // console.log('content script finished');

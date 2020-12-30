@@ -1,6 +1,5 @@
 "use strict";
 
-
 const suboff = {};
 
 // Create select element for selection between different methods of transformation
