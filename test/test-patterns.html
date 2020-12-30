@@ -66,12 +66,8 @@ I've got Henshaw, but I don't know where--
 </textarea>
 
 <div>
-	<div>
+	<div id="selector-container">
 		<label for="transformation-type">Type of transformation:</label>
-		<select id="transformation-type" class="form-select mb-3" arila-label="Select type of transformation" style="width:30%">
-			<option value="easy">Easy</option>
-			<option selected value="easy-resursive">Easy recursive (default)</option>
-		</select>
 	</div>
 	<input id="btn-process" type="button" class="btn btn-primary mb-3" value="Transform subtitles">
 </div>
@@ -104,36 +100,24 @@ function initEvents() {
 		return false;
 	};
 }
-initEvents();
+
+function initUI() {
+	initEvents();
+
+	vttCreateMethodSelector(document.getElementById("selector-container"), { "id" : "transformation-type", "class" : "form-select mb-3", "aria-label": "Select type of transformation", "style":"width:30%" });
+}
+initUI();
+
 
 
 function process() {
 	let text = document.getElementById("input").value;
 	let lines = text.split("\n");
-	let transformationType = document.getElementById("transformation-type").value;
 	let output = '<table id="tbl-procesed" class="table"><thead><tr><th>Original</th><th>Transformed</th></tr></thead><tbody>';
 	document.getElementById("processed").innerHTML = "";
 
 	for (const line of lines) {
-
-		let transformedLine;
-
-		switch(transformationType) {
-			case "easy":
-				transformedLine = transformEasy(line);
-				break;
-
-			case "easy-resursive":
-				transformedLine = vttTransformEasyRecursive(line);
-				break;
-
-			case "experimental":
-				transformedLine = transformExperimental(line);
-				break;
-
-			default:
-				transformedLine = "UNKNOWN TRANSFORMATION";
-		}
+		let transformedLine = vttTransform(line);
 
 		// do not forget to escape HTML output, change "<" into "&lt;""
 		output += "<tr><td>" + htmlEscape(line) + "</td><td>" + htmlEscape(transformedLine) + "</td></tr>";
@@ -150,10 +134,6 @@ function process() {
 
 function htmlEscape(s) {
 	return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
-}
-
-function transformEasy(s) {
-	return s.replace(/(\W\w+)/ig, " _ ");
 }
 
 </script>

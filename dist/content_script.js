@@ -79,8 +79,6 @@ scriptElem.text = `
     return simpleText;
   }
 
-  
-
   function extractMovieTextTracks(movieObj) {
     const movieId = movieObj.movieId;
 
@@ -315,6 +313,8 @@ scriptElem.text = `
       panelElem.appendChild(toggleDisplayButtonElem);
       panelElem.appendChild(selectElem);
       panelElem.appendChild(downloadButtonElem);
+
+      if (vttCreateMethodSelector) { vttCreateMethodSelector(panelElem, {"style": "color: black; margin: 5px"}); }
 
       const containerElem = document.createElement('div');
       containerElem.id = SUBS_LIST_ELEM_ID;

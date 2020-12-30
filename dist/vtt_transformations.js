@@ -1,5 +1,36 @@
 "use strict";
 
+// Create select element for selection between different methods of transformation
+function vttCreateMethodSelector(parent, options) {
+
+	const selectElem = document.createElement("select");
+	selectElem.title = "Choose method for subtitles transformation";
+
+	if (options) {
+		for (const item in options) {
+			selectElem.setAttribute(item, options[item]);
+			//console.log({ item: item, value: options[item] });
+		}
+	}
+
+
+	selectElem.addEventListener("change", function(e) {
+		//console.log(e.target.value);
+		vttTransformSelectedMethod = window[e.target.value]; // converting string with function name to function reference, window["name"] is the trick
+	}, false);
+
+	for (const method of vttTransformMethods) {
+		let optElem = document.createElement("option");
+		optElem.textContent = method.name;
+		optElem.title = method.name + " : \n" + method.description;
+		optElem.value = method.function.name;
+
+		selectElem.appendChild(optElem);
+	}
+
+	parent.appendChild(selectElem);
+}
+
 // s contains multiline vtt cue text
 // process each line individually
 function vttTransformMultiLine(s) {
@@ -14,13 +45,31 @@ function vttTransformMultiLine(s) {
     return newLines.join('\n');	
 }
 
+let vttTransformSelectedMethod = vttTransformEasyRecursive;
+
+const vttTransformMethods = [
+	{
+		name: "English friendly",
+		description: "Optimized for English, understand basic English stop words.",
+		function: vttTransformEasyRecursive
+	},
+	{
+		name: "Elemental (ony for testing)",
+		description: "Really stupid method",
+		function: transformEasy
+	}
+];
 
 // General method for transforming one-line vtt text
 // Can switch between more specializes transformations
 function vttTransform(s) {
-	return vttTransformEasyRecursive(s);
+	return vttTransformSelectedMethod(s);
 }
 
+
+function transformEasy(s) {
+	return s.replace(/(\W\w+)/ig, " _ ");
+}
 
 // recursive transformational function
 function vttTransformEasyRecursive(s) {
