@@ -14,5 +14,8 @@
       "run_at": "document_end",
       "js": ["content_script.js"]
     }
+  ],
+  "web_accessible_resources": [
+    "vtt_transformations.js"
   ]
  }
