@@ -195,7 +195,7 @@ subaoff.transformations = function() {
 				}
 				else
 				{	// the next string is not long enough, continue like no stopword was detected here
-					transformed = s.replace(/(\W\w+)/ig, " _ ");
+					transformed = s.replace(/(\s\S+)/ig, " _ ");
 				}
 			}
 			else
@@ -204,7 +204,7 @@ subaoff.transformations = function() {
 				// remove every word, but not first word, keep other non word characters
 
 				//console.log({s:s, r:s.replace(/(\W\w+)/ig, " _ ")});		
-				transformed = s.replace(/(\W\w+)/ig, " _ ");
+				transformed = s.replace(/(\s\S+)/ig, " _ ");
 			}
 
 			return transformed;
