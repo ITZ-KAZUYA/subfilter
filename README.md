@@ -1,8 +1,8 @@
-# Subadub - focus on listening edition
+# Subadub / subaoff - focus on listening edition
 
 ## My Changes to Subadub
 
-This project ***Subadub focus on listening edition*** is a modified version of ***Subadub*** browser extension. 
+This project ***Subadub / subaoff - focus on listening edition*** is a modified version of ***Subadub*** browser extension. 
 It helps with learning languages by watching Netflix movies. It is designed for language learners with a focus on practicing listening skills. 
 Movie subtitles are displayed with some letters/words missing. This forces you to focus more on listening.
 There are several subtitle modes, some easier, others more difficult, you can try which one suits your learning level.
