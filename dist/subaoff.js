@@ -5,7 +5,7 @@ const subaoff = {};
 // Create select element for selection between different methods of transformation
 subaoff.createMethodSelector = function (parent, options) {
 	const selectElem = document.createElement("select");
-	selectElem.title = "Choose method for subtitles transformation";
+	selectElem.title = "Select filter";
 
 	if (options) {
 		for (const item in options) {
@@ -84,6 +84,20 @@ subaoff.transformations = function() {
 		// get list of avalilable transformations
 		function list() {
 			return listing;
+		}
+
+		// register custom filter
+		function register(key, name, description, run) {
+			if (key && typeof key === "string" && name && typeof name === "string" && description && typeof description === "string" && run && typeof run == "function") {
+				// console.log("New filter registered", {key, name, description, run})				
+				listing[key] = {name: name, description: description, run: run};				
+			}
+			else {
+				console.error({key, name, description, run});
+				throw "Error. Not able to register new filter"
+			}
+
+
 		}
 
 		/////////////////////////////////////////////
@@ -210,7 +224,7 @@ subaoff.transformations = function() {
 			return transformed;
 		}		
 
-	return {run, runByName, select, list};
+	return {run, runByName, select, list, register};
 }();
 
 subaoff.stopWords = {};

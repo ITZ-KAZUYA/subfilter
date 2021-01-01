@@ -16,6 +16,6 @@
     }
   ],
   "web_accessible_resources": [
-    "subaoff.js"
+    "subaoff.js", "custom_filters.js"
   ]
  }

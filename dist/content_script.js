@@ -568,4 +568,8 @@ const scriptElem2 = document.createElement('script');
 scriptElem2.src = chrome.extension.getURL('subaoff.js');
 document.head.insertBefore(scriptElem2, document.head.firstChild);
 
+const scriptElem3 = document.createElement('script');
+scriptElem3.src = chrome.extension.getURL('custom_filters.js');
+document.head.insertBefore(scriptElem3, document.head.firstChild);
+
 // console.log('content script finished');
