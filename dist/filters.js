@@ -2,6 +2,8 @@
 
 const subaoff = {};
 
+subaoff.storageLastFilterKey = "subaoff-filtername";
+
 // Create select element for selection between different filters
 subaoff.createFilterSelector = function (parent, options) {
 	const selectElem = document.createElement("select");
@@ -14,10 +16,6 @@ subaoff.createFilterSelector = function (parent, options) {
 		}
 	}
 
-	selectElem.addEventListener("change", function(e) {
-		subaoff.filters.select(e.target.value);
-	}, false);
-
 	const list = subaoff.filters.list();
 	for (const method in list) {
 		let optElem = document.createElement("option");
@@ -26,6 +24,21 @@ subaoff.createFilterSelector = function (parent, options) {
 		optElem.value = method;
 		selectElem.appendChild(optElem);
 	}
+
+	// Set current filter to the last filter that we remember 
+	let lastFilterName = localStorage.getItem(subaoff.storageLastFilterKey);
+
+	if (lastFilterName) {
+		subaoff.filters.select(lastFilterName);
+		selectElem.value = lastFilterName;
+	}
+
+	selectElem.addEventListener("change", function(e) {
+		subaoff.filters.select(e.target.value);
+
+		localStorage.setItem(subaoff.storageLastFilterKey, e.target.value);
+	}, false);
+
 	parent.appendChild(selectElem);
 }
 
@@ -48,13 +61,14 @@ subaoff.filterMultiLine = function(s) {
 //
 subaoff.filters = function() {
 
-		let defaultFilter = "easyEnglish";
+		let defaultFilter = "nofilter";
 		let currentFilter = defaultFilter;
 
 		let listing = {
+					"nofilter":    { name: "No filter",                   description: "Switch off filters.", run: nofilter },
 					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish },
 					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish },
-					"easyTesting": { name: "Elemental (ony for testing)", description: "Really stupid method", run: easyTesting }
+//					"easyTesting": { name: "Elemental (ony for testing)", description: "Really stupid method", run: easyTesting },
 				};
 
 		// run currently selected filter
@@ -62,6 +76,7 @@ subaoff.filters = function() {
 			return listing[currentFilter].run(s);
 		}
 
+		// run filter with given name
 		function runByName(name, s) {
 			if (name in listing) {
 				return listing[name].run(s)				
@@ -109,6 +124,10 @@ subaoff.filters = function() {
 			return s.replace(/(\W\w+)/ig, " _ ");
 		}
 
+		// nofilter is filter too, just change nothing
+		function nofilter(s) {
+			return s;
+		}
 
 		// recursive filter function, using Englist stop words
 		function easyEnglish(s) {
