@@ -2,8 +2,8 @@
 
 const subaoff = {};
 
-// Create select element for selection between different methods of transformation
-subaoff.createMethodSelector = function (parent, options) {
+// Create select element for selection between different filters
+subaoff.createFilterSelector = function (parent, options) {
 	const selectElem = document.createElement("select");
 	selectElem.title = "Select filter";
 
@@ -15,10 +15,10 @@ subaoff.createMethodSelector = function (parent, options) {
 	}
 
 	selectElem.addEventListener("change", function(e) {
-		subaoff.transformations.select(e.target.value);
+		subaoff.filters.select(e.target.value);
 	}, false);
 
-	const list = subaoff.transformations.list();
+	const list = subaoff.filters.list();
 	for (const method in list) {
 		let optElem = document.createElement("option");
 		optElem.textContent = list[method].name;
@@ -31,11 +31,11 @@ subaoff.createMethodSelector = function (parent, options) {
 
 // s contains multiline vtt cue text
 // process each line individually
-subaoff.transformMultiLine = function(s) {
+subaoff.filterMultiLine = function(s) {
     const lines = s.split('\n');
     const newLines = [];
     for (const line of lines) {
-      let transformed = subaoff.transformations.run(line);
+      let transformed = subaoff.filters.run(line);
       // console.log({li: line, lo: blurred});
       newLines.push(transformed);
     }
@@ -44,12 +44,12 @@ subaoff.transformMultiLine = function(s) {
 }
 
 //////////////////////////////////////////////////////
-// Manager for selecting/runing text transformations
+// Manager for selecting/runing filters
 //
-subaoff.transformations = function() {
+subaoff.filters = function() {
 
-		let defaultTransformation = "easyEnglish";
-		let currentTransformation = defaultTransformation;
+		let defaultFilter = "easyEnglish";
+		let currentFilter = defaultFilter;
 
 		let listing = {
 					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish },
@@ -57,9 +57,9 @@ subaoff.transformations = function() {
 					"easyTesting": { name: "Elemental (ony for testing)", description: "Really stupid method", run: easyTesting }
 				};
 
-		// run currently selected transformation
+		// run currently selected filter
 		function run(s) {
-			return listing[currentTransformation].run(s);
+			return listing[currentFilter].run(s);
 		}
 
 		function runByName(name, s) {
@@ -67,21 +67,21 @@ subaoff.transformations = function() {
 				return listing[name].run(s)				
 			}
 			console.error({name, s});
-			throw "Error. Unknow transformation name.";
+			throw "Error. Unknow filter name.";
 		}
 
 		function select(name) {
 			if (name in listing) {
-				currentTransformation = name;
+				currentFilter = name;
 			}
 			else {
 				console.error({name});
-				throw "Error. Unknow transformation name.";
+				throw "Error. Unknow filter name.";
 			}
 			return name;
 		}
 
-		// get list of avalilable transformations
+		// get list of avalilable filters
 		function list() {
 			return listing;
 		}
@@ -101,7 +101,7 @@ subaoff.transformations = function() {
 		}
 
 		/////////////////////////////////////////////
-		// All transformation methods starts here:
+		// All filters are defined here:
 		//
 
 		// this one just for testing
@@ -110,7 +110,7 @@ subaoff.transformations = function() {
 		}
 
 
-		// recursive transformational function, using Englist stop words
+		// recursive filter function, using Englist stop words
 		function easyEnglish(s) {
 			let transformed;
 
@@ -167,7 +167,7 @@ subaoff.transformations = function() {
 			return transformed;
 		}
 
-		// recursive transformational function, using Spanish stop words
+		// recursive filter function, using Spanish stop words
 		function easySpanish(s) {
 			let transformed;
 

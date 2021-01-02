@@ -192,7 +192,7 @@ scriptElem.text = `
     }
   }
 
-  function downloadSRT(transformvtt) { // if transformvtt = true, then download transfomed subtitles version
+  function downloadSRT(filtervtt) { // if filtervtt = true, then filter subtitles before download
     function formatTime(t) {
       const date = new Date(0, 0, 0, 0, 0, 0, t*1000);
       const hours = date.getHours().toString().padStart(2, '0');
@@ -229,7 +229,7 @@ scriptElem.text = `
     for (const cue of trackElem.track.cues) {
       let cleanedText = vttTextToSimple(cue.text, true);
 
-      if (transformvtt && subaoff && subaoff.transformMultiLine) { cleanedText = subaoff.transformMultiLine(cleanedText); }
+      if (filtervtt && subaoff && subaoff.filterMultiLine) { cleanedText = subaoff.filterMultiLine(cleanedText); }
 
       srtChunks.push(idx + '\\n' + formatTime(cue.startTime) + ' --> ' + formatTime(cue.endTime) + '\\n' + cleanedText + '\\n\\n');
       idx++;
@@ -315,7 +315,7 @@ scriptElem.text = `
       panelElem.appendChild(selectElem);
       panelElem.appendChild(downloadButtonElem);
 
-      if (subaoff && subaoff.createMethodSelector) { subaoff.createMethodSelector(panelElem, {"style": "color: black; margin: 5px"}); }
+      if (subaoff && subaoff.createFilterSelector) { subaoff.createFilterSelector(panelElem, {"style": "color: black; margin: 5px", "aria-label": "Select filter"}); }
 
       const containerElem = document.createElement('div');
       containerElem.id = SUBS_LIST_ELEM_ID;
@@ -368,7 +368,7 @@ scriptElem.text = `
           cueElem.style.cssText = 'background: rgba(0,0,0,0.8); white-space: pre-wrap; padding: 0.2em 0.3em; margin: 10px auto; width: fit-content; width: -moz-fit-content; pointer-events: auto';
 
           let simpleText = vttTextToSimple(cue.text, true); // may contain simple tags like <i> etc.
-          if (subaoff && subaoff.transformMultiLine) { simpleText = subaoff.transformMultiLine(simpleText) } // for language practice make some parts of subtitles not visible
+          if (subaoff && subaoff.filterMultiLine) { simpleText = subaoff.filterMultiLine(simpleText) } // for language practice make some parts of subtitles not visible
           cueElem.innerHTML = simpleText;
           customSubsElem.appendChild(cueElem);
         }
@@ -565,7 +565,7 @@ scriptElem.text = `
 document.head.insertBefore(scriptElem, document.head.firstChild);
 
 const scriptElem2 = document.createElement('script');
-scriptElem2.src = chrome.extension.getURL('subaoff.js');
+scriptElem2.src = chrome.extension.getURL('filters.js');
 document.head.insertBefore(scriptElem2, document.head.firstChild);
 
 const scriptElem3 = document.createElement('script');

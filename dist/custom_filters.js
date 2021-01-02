@@ -24,16 +24,16 @@
 	}
 	*/
 
-	if (subaoff && subaoff.transformations && subaoff.transformations.register) {
+	if (subaoff && subaoff.filters && subaoff.filters.register) {
 
 		// Register you filter here
-		// subaoff.transformations.register(key, name, description, run)
+		// subaoff.filters.register(key, name, description, run)
 		// "key" must be unique valid javascript identifier (use only alphabetic characters and numerals)
 
-		subaoff.transformations.register("custom1", "My Custom filter", "You can define your own filters.", customFilter1);
+		subaoff.filters.register("custom1", "My Custom filter", "You can define your own filters.", customFilter1);
 
-		//subaoff.transformations.register("custom2", "My Custom filter 2", "You can define your own filters.", customFilter2);
-		//subaoff.transformations.register("custom3", "My Custom filter 3", "You can define your own filters.", customFilter3);
+		//subaoff.filters.register("custom2", "My Custom filter 2", "You can define your own filters.", customFilter2);
+		//subaoff.filters.register("custom3", "My Custom filter 3", "You can define your own filters.", customFilter3);
 	}
 	
 
