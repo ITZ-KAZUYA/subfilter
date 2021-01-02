@@ -163,6 +163,7 @@ function process() {
 
 	for (const line of lines) {
 		let transformedLine = subaoff.filters.run(line);
+		//console.log({line, transformedLine});
 
 		let isError = checkForFilterErrors(line, transformedLine);
 		let class2ndCol = "";
@@ -206,7 +207,7 @@ function checkForFilterErrors(ori, filt) {
 		}
 	}
 
-	if (ori.match(/<[^>]*>/)) { // there is some HTML markup, check if it is well formed
+	if (filt.match(/<[^>]*>/)) { // there is some HTML markup, check if it is well formed
 
 		// Here we use string replace with callback function.
 		// That callback is called for every opening <X> and closing </X> tag
@@ -217,7 +218,7 @@ function checkForFilterErrors(ori, filt) {
 
 		let stack = [];
 		let error = false;
-		ori.replace(/<(\/?)([^>]*)>/g, function(m, p1,p2, o, s) { // p1 is "" or "/"; p2 is name of found tag
+		filt.replace(/<(\/?)([^>]*)>/g, function(m, p1,p2, o, s) { // p1 is "" or "/"; p2 is name of found tag
 			if (p1 == "") { stack.push(p2); }
 			if (p1 == "/"){
 				let b = stack.pop();
