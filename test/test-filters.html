@@ -233,6 +233,16 @@ function checkForFilterErrors(ori, filt) {
 		}
 	}
 
+	let filt1 = filt.split(/ _/)[0];
+	let ori1 = ori.substr(0, filt1.length);
+
+	// Check if filter did not change beginning of the subtitle
+	if (ori1 != filt1) {
+		//console.log(ori1);
+		//console.log(filt1);
+		return true;
+	}
+
 	let withoutUnderscores = filt.replace(/ ?_ ?/g, ""); // remove underscores and optional spaces around them
 
 	// detect when filter removed too many content
