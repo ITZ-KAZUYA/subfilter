@@ -66,7 +66,9 @@ subaoff.filters = function() {
 
 		let listing = {
 					"nofilter":    { name: "No filter",                   description: "Switch off filters.", run: nofilter },
-					"generalLatin": { name: "General filter (for latin alphabets)", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatin },
+					"generalLatin": { name: "General filter (for latin alphabets) - DEFAULT", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinNormal },
+					"generalLatinEasy": { name: "General filter (lat. al.) - EASY", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinEasy },
+					"generalLatinHard": { name: "General filter (lat. al.) - HARD", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinHard },
 					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish },
 					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish },
 //					"easyTesting": { name: "Elemental (ony for testing)", description: "Really stupid method", run: easyTesting },
@@ -114,6 +116,19 @@ subaoff.filters = function() {
 			}
 
 
+		}
+
+		// Some filters can use difficulty settings
+
+		let filterDifficulty = 2; // 3 = hard, 2 = normal, 1.5 = easy
+
+		function setFilterDifficulty(value) {
+			if (!value) {             // no value = reset difficulty to normal
+				filterDifficulty = 2; // 2 = normal difficulty
+			}
+			else {
+				filterDifficulty = value;
+			}
 		}
 
 		/////////////////////////////////////////////
@@ -290,7 +305,7 @@ subaoff.filters = function() {
 				//console.log(fragments.length);
 
 				// Coeficient, who large part of the text to delete
-				let coef = 2 // 3 = hard, 2 = normal, 1.5 = easy
+				let coef = filterDifficulty; // 3 = hard, 2 = normal, 1.5 = easy
 				let nFragmentsToKeep =  Math.round(fragments.length / coef);
 				transformed = fragments[0]; // start 1st fragment
 
@@ -320,6 +335,27 @@ subaoff.filters = function() {
 			}			
 
 			return transformed;
+		}
+
+		// This is a proxy around generalLatin filter, just make more easy settings
+		function generalLatinEasy(s) {
+
+			setFilterDifficulty(1.5);
+			return generalLatin(s);
+		}
+
+		// This is a proxy around generalLatin filter, with normal settings
+		function generalLatinNormal(s) {
+
+			setFilterDifficulty(2);
+			return generalLatin(s);
+		}
+
+		// This is a proxy around generalLatin filter, just make harder settings
+		function generalLatinHard(s) {
+
+			setFilterDifficulty(3);
+			return generalLatin(s);
 		}
 
 	return {run, runByName, select, list, register};
