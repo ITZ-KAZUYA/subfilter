@@ -141,11 +141,11 @@ subaoff.filters = function() {
 			if (startingCharacters.includes(s.charAt(0))) {
 				transformed = s.charAt(0) + easyEnglish(s.substring(1));
 			}
-			// sometimes subtitles contains html markup, usualy <b>, <i>, <u> and </b>, </i>, </u>. we keep text inside <>  without change and transform the rest
-			// there can be more marks in one text, and not necesary in pairs	
+			// sometimes subtitles contains html markup, usualy <b>, <i>, <u> and </b>, </i>, </u>. we keep text inside <> without change and transform the rest
+			// there can be more tags in one text, and not necesary in pairs	
 			else if (s.match(/<[^>]+>/)) { // looking for < anything in angle brackets >
 			
-				// we need to find all <marks>, for that we use global string.replace with callback function
+				// we need to find all <tags>, for which we use global string.replace with callback function
 				transformed = s.replace(/([^<>]*)(<[^<>]+>)([^<>]*)/g,
 					function(m,p1,p2,p3,o,s,g) { // m contains one whole match, p1 text before <angle bracket>, p2 text inside <angle bracket> including brackets, p3 text after <angle bracket>
 						//console.log({m:m,p1:p1,p2:p2,p3:p3,o:o,s:s,g:g});
@@ -198,11 +198,11 @@ subaoff.filters = function() {
 			if (startingCharacters.includes(s.charAt(0))) {
 				transformed = s.charAt(0) + easySpanish(s.substring(1));
 			}
-			// sometimes subtitles contains html markup, usualy <b>, <i>, <u> and </b>, </i>, </u>. we keep text inside <>  without change and transform the rest
-			// there can be more marks in one text, and not necesary in pairs	
+			// sometimes subtitles contains html markup, usualy <b>, <i>, <u> and </b>, </i>, </u>. we keep text inside <> without change and transform the rest
+			// there can be more tags in one text, and not necesary in pairs	
 			else if (s.match(/<[^>]+>/)) { // looking for < anything in angle brackets >
 			
-				// we need to find all <marks>, for that we use global string.replace with callback function
+				// we need to find all <tags>, for that we use global string.replace with callback function
 				transformed = s.replace(/([^<>]*)(<[^<>]+>)([^<>]*)/g,
 					function(m,p1,p2,p3,o,s,g) { // m contains one whole match, p1 text before <angle bracket>, p2 text inside <angle bracket> including brackets, p3 text after <angle bracket>
 						//console.log({m:m,p1:p1,p2:p2,p3:p3,o:o,s:s,g:g});

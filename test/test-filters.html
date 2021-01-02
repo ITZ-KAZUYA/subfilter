@@ -69,7 +69,7 @@ The campaign took two weeks to plan.
 -Will, your action!
 -Told ya. [chuckling]
 -[snorts]
--[all chuckling] 
+-[all chuckling]
 -[yells] Boom!
 <i>Stick and stones,</i>
 -[John]<i>Stick</i> and <i>stones,</i>
@@ -103,7 +103,15 @@ And that was a fluke.
 What would Alex say?
 That with Lex, anything is possible.
 I've got Henshaw, but I don't know where--
-"Han Solo never looked so good."`;
+"Han Solo never looked so good."
+until J'onn gets back.
+Uh, as a matter of fact, I have, but...
+Hey, man, I'm sorry. I got word late.
+I just met you.
+Eva, there has got to be a way out of here.
+Yeah, I need a fresh pair of eyes on it.
+Uh, are you sure you don't want some help?
+Sue's been on the run for the last year.`;
 
 preparedText.spanish = `"Mucho cuidado,
 porque en el momento en que haya
@@ -156,8 +164,13 @@ function process() {
 	for (const line of lines) {
 		let transformedLine = subaoff.filters.run(line);
 
+		let isError = checkForFilterErrors(line, transformedLine);
+		let class2ndCol = "";
+		if (isError) {
+			class2ndCol = "bg-danger text-white";
+		}
 		// do not forget to escape HTML output, change "<" into "&lt;""
-		output += "<tr><td>" + htmlEscape(line) + "</td><td>" + htmlEscape(transformedLine) + "</td></tr>";
+		output += "<tr><td>" + htmlEscape(line) + "</td><td class=\"" + class2ndCol + "\">" + htmlEscape(transformedLine) + "</td></tr>";
 	}
 
 	output += "</tbody></table>";
@@ -171,6 +184,70 @@ function process() {
 
 function htmlEscape(s) {
 	return s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+}
+
+// Check for common filter error 
+function checkForFilterErrors(ori, filt) {
+
+	if (filt == "") {
+		return true;
+	}
+
+	// Detect if filter changes nothing
+	if (ori == filt) {
+		// Sometimes is this ok, we need to check for more details
+
+		if (
+			!ori.match(/^\S+$/) &&      // if ori is only one word, then it is ok
+			!ori.match(/^-?\[[^\]]+\]$/)  // if ori only consits of [text in brackets] with optional dash at the beginning, then it is ok
+		) 
+		{ 
+			return true;
+		}
+	}
+
+	if (ori.match(/<[^>]*>/)) { // there is some HTML markup, check if it is well formed
+
+		// Here we use string replace with callback function.
+		// That callback is called for every opening <X> and closing </X> tag
+		// We put name of every found openning <tag> inside stack
+		// For every found closing </tag> we remove last item from the stack and check if it corresponds with this closing tag
+		// After replacing ends the stack should be empty.
+		// If anything got wrong, then there is some markup error
+
+		let stack = [];
+		let error = false;
+		ori.replace(/<(\/?)([^>]*)>/g, function(m, p1,p2, o, s) { // p1 is "" or "/"; p2 is name of found tag
+			if (p1 == "") { stack.push(p2); }
+			if (p1 == "/"){
+				let b = stack.pop();
+				if (b == undefined || b != p2) { error = true }; // always check for b undefined, might happend with more closing tags than opening tags
+			}
+			//console.log({m,p1,p2, o, s});
+			return "";
+		});
+
+		if (stack.length != 0 || error == true) {
+			return true;
+		}
+	}
+
+	let withoutUnderscores = filt.replace(/ ?_ ?/g, ""); // remove underscores and optional spaces around them
+
+	// detect when filter removed too many content
+	if (withoutUnderscores.length <= 3 && ori.length > 10) {
+		return true;
+	}
+
+	if (withoutUnderscores.length <= 5 && ori.length > 15) {
+		return true;
+	}
+
+	if (withoutUnderscores.length <= 8 && ori.length > 20) {
+		return true;
+	}	
+
+	return false;
 }
 
 </script>
