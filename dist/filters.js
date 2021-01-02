@@ -66,6 +66,7 @@ subaoff.filters = function() {
 
 		let listing = {
 					"nofilter":    { name: "No filter",                   description: "Switch off filters.", run: nofilter },
+					"generalLatin": { name: "General filter (for latin alphabets)", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatin },
 					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish },
 					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish },
 //					"easyTesting": { name: "Elemental (ony for testing)", description: "Really stupid method", run: easyTesting },
@@ -236,12 +237,90 @@ subaoff.filters = function() {
 				// Finally we reach end, there are no more special characters, we can transform the text
 				// remove every word, but not first word, keep other non word characters
 
-				//console.log({s:s, r:s.replace(/(\W\w+)/ig, " _ ")});		
 				transformed = s.replace(/(\s\S+)/ig, " _ ");
 			}
 
 			return transformed;
-		}		
+		}
+
+
+		// general filter for languages with latin alphabet that we do not handle more specifically
+		function generalLatin(s) {
+			let transformed;
+
+			if (!s) { return s; } // sometimes s is empty string
+
+			// Handle some special characters at the beginning
+			// these are characters often found at subtitle beginning, we keep them unchanged and transform rest of the string
+			let startingCharacters = ["-", "♪", " ", "'", ",", ".", "\"", "("];
+
+			if (startingCharacters.includes(s.charAt(0))) {
+				transformed = s.charAt(0) + generalLatin(s.substring(1));
+			}
+
+			// Handle subtitle markup
+			// Sometimes subtitles contains html markup, usualy <b>, <i>, <u> and </b>, </i>, </u>.
+			// Keep text inside <> without change and transform the rest
+			// Note: there can be more tags in one text, and might not necesary be in pairs
+			else if (s.match(/<[^>]+>/)) { // looking for < anything in angle brackets >
+			
+				// we need to find all <tags>, for which we use global string.replace with callback function
+				transformed = s.replace(/([^<>]*)(<[^<>]+>)([^<>]*)/g,
+					function(m,p1,p2,p3,o,s,g) { // m contains one whole match, p1 text before <angle bracket>, p2 text inside <angle bracket> including brackets, p3 text after <angle bracket>
+						//console.log({m:m,p1:p1,p2:p2,p3:p3,o:o,s:s,g:g});
+						return generalLatin(p1) + p2 + generalLatin(p3);
+					}
+				);
+			}
+
+			// Handle [text in brackets]
+			// It this usually comment, that is not part of speach
+			// Keep all text inside brackets without change and transform the rest
+
+			else if (s.match(/\[[^\]]+\]/)) { // looking for [ anything in square brackets ]
+				let results = s.match(/(.*)(\[[^\]]+\])(.*)/); // results[1] contains text before [backets], results[2] containts text inside [backets] including brackets, results[3] text after [backets]
+				transformed = generalLatin(results[1]) + results[2] + generalLatin(results[3]);
+			}
+			else
+			{
+				// Finally here, decide which words to delete
+				// Split text into fragments between spaces (usually words, but also numbers, punctuations etc.) and check every fragment
+				// \s is can be any type of space character including tabulator. But most usually it is space. At least in subtitles.
+				let fragments = s.split(/\s/);
+				//console.log(fragments.length);
+
+				// Coeficient, who large part of the text to delete
+				let coef = 2 // 3 = hard, 2 = normal, 1.5 = easy
+				let nFragmentsToKeep =  Math.round(fragments.length / coef);
+				transformed = fragments[0]; // start 1st fragment
+
+				for (let i = 1; i < fragments.length; i++) {
+					//console.log( fragments[i] );
+
+					// Keep words/fragments at the beginning unchanged
+					if (i < nFragmentsToKeep) {
+						transformed = transformed + " " + fragments[i];
+					}
+					// Delete words/fragments at the end
+					else {
+						// But check for common non-letter characters, like punctuation, we want to display these
+
+						// SpecialCharacters : ["-", "♪", "'", ",", ".", "\"", "(", ")", ":", ";", ".", "?", "!", "¡", "¿"];
+
+						if (fragments[i].match(/[-♪()',":;.?!¡¿]/)) {
+							let replaced = fragments[i].replace(/[^-♪()',":;.?!¡¿]/g, "_"); // keep special characters, replace all others by underscore
+							replaced = replaced.replace(/_+/g, "_")  // remove duplicit underscores
+							transformed = transformed + " " + replaced;
+						}
+						else {
+							transformed = transformed + " _ ";
+						}
+					}
+				}
+			}			
+
+			return transformed;
+		}
 
 	return {run, runByName, select, list, register};
 }();

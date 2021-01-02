@@ -74,6 +74,7 @@ The campaign took two weeks to plan.
 <i>Stick and stones,</i>
 -[John]<i>Stick</i> and <i>stones,</i>
 <i>♪ I don't care at all ♪</i>
+Or Guadalupe Lopez's <i>quinceañera.</i>
 and he's in here all the time.
 If you see there stripes,
 that means they're a non-player character.
@@ -129,7 +130,8 @@ Quiero que lleves tú
 la negociación".
 (BERLÍN) Ya se están llevando
 a los policías heridos.
--Pues ya te lo he explicado, Paula.`;
+-Pues ya te lo he explicado, Paula.
+Es como cuando fuimos al <i>bat mitzvá</i>`;
 
 function initEvents() {
 	document.getElementById("btn-process").onclick = function(e) {
@@ -202,7 +204,8 @@ function checkForFilterErrors(ori, filt) {
 			!ori.match(/^\S+$/) &&      // if ori is only one word, then it is ok
 			!ori.match(/^-?\[[^\]]+\]$/)  // if ori only consits of [text in brackets] with optional dash at the beginning, then it is ok
 		) 
-		{ 
+		{
+			console.log({ori, filt, msg:"No change."})
 			return true;
 		}
 	}
@@ -229,17 +232,19 @@ function checkForFilterErrors(ori, filt) {
 		});
 
 		if (stack.length != 0 || error == true) {
+			console.log({ori, filt, msg:"Markup problem"})
 			return true;
 		}
 	}
 
-	let filt1 = filt.split(/ _/)[0];
+	let filt1 = filt.split(/_/)[0];
 	let ori1 = ori.substr(0, filt1.length);
 
 	// Check if filter did not change beginning of the subtitle
 	if (ori1 != filt1) {
-		//console.log(ori1);
-		//console.log(filt1);
+		console.log({ori, filt, msg:"Not the same"});
+		console.log(ori1);
+		console.log(filt1);
 		return true;
 	}
 
@@ -247,14 +252,17 @@ function checkForFilterErrors(ori, filt) {
 
 	// detect when filter removed too many content
 	if (withoutUnderscores.length <= 3 && ori.length > 10) {
+		console.log({ori, filt, msg:"Too short"});
 		return true;
 	}
 
 	if (withoutUnderscores.length <= 5 && ori.length > 15) {
+		console.log({ori, filt, msg:"Too short"});
 		return true;
 	}
 
 	if (withoutUnderscores.length <= 8 && ori.length > 20) {
+		console.log({ori, filt, msg:"Too short"});
 		return true;
 	}	
 
