@@ -433,7 +433,7 @@ scriptElem.text = `
     }
 
     // Reconcile DOM if necessary
-    if (targetTrackBlob !== displayedTrackBlob) {
+    if (targetTrackBlob !== displayedTrackBlob || document.getElementById(TRACK_ELEM_ID) === null) {
       // console.log('need to update track blob', targetTrackBlob, displayedTrackBlob);
 
       removeTrackElem();
