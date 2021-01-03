@@ -152,7 +152,7 @@ function initUI() {
 	initEvents();
 
 	document.getElementById("input").value = preparedText.english;
-	subfilter.createFilterSelector(document.getElementById("selector-container"), { "id" : "filter-type", "class" : "form-select mb-3", "aria-label": "Select filter", "style":"width:30%" });
+	subfilter.createFilterSelector(document.getElementById("selector-container"), { "id" : "filter-type", "class" : "form-select mb-3", "aria-label": "Select filter", "style":"width:30%" }, true);
 }
 initUI();
 

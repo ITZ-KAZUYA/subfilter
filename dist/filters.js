@@ -4,8 +4,15 @@ const subfilter = {};
 
 subfilter.storageLastFilterKey = "subfilter-filtername";
 
-// Create select element for selection between different filters
-subfilter.createFilterSelector = function (parent, options) {
+// Create select element for filter selection
+// and insert it inside "parent" element
+// "option" is object with attributes of "select" element  e.g. {"id": "filters", "class": "form-select mb-3" }
+// optional "includeHiddenFilters" = false | true
+subfilter.createFilterSelector = function (parent, options, includeHiddenFilters) {
+
+	if (includeHiddenFilters == undefined)
+		includeHiddenFilters = false;
+
 	const selectElem = document.createElement("select");
 	selectElem.title = "Select filter";
 
@@ -18,6 +25,12 @@ subfilter.createFilterSelector = function (parent, options) {
 
 	const list = subfilter.filters.list();
 	for (const method in list) {
+
+		// do not show hidden filters unless includeHiddenFilters == true
+		if ("hide" in list[method] && list[method].hide == true && includeHiddenFilters == false) {
+			continue;
+		}
+
 		let optElem = document.createElement("option");
 		optElem.textContent = list[method].name;
 		optElem.title = list[method].name + " : \n" + list[method].description;
@@ -66,11 +79,11 @@ subfilter.filters = function() {
 
 		let listing = {
 					"nofilter":    { name: "No filter",                   description: "Switch off filters.", run: nofilter },
-					"generalLatin": { name: "General filter (for latin alphabets) - DEFAULT", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinNormal },
-					"generalLatinEasy": { name: "General filter (lat. al.) - EASY", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinEasy },
-					"generalLatinHard": { name: "General filter (lat. al.) - HARD", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinHard },
-					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish },
-					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish },
+					"generalLatin": { name: "General filter - NORMAL (recommended)", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinNormal },
+					"generalLatinEasy": { name: "General filter - EASY", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinEasy },
+					"generalLatinHard": { name: "General filter - HARD", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinHard },
+					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish, hide: true },
+					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish, hide: true },
 //					"easyTesting": { name: "Elemental (ony for testing)", description: "Really stupid method", run: easyTesting },
 				};
 
