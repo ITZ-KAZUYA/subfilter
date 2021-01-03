@@ -1,6 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>github.com/met/subadub - test filters</title>
+<title>Subfilter for Netflix - test filters</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
 
@@ -9,7 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript" integrity="sha384-+NH1Lmhq1u8XKi1XBTaE+L8OWwUMKaIgO+1cvgDH3N31BLAwidVFIFDQSzJK//l0" crossorigin="anonymous"></script>
 
 <body class="container">
-<h1 class="mt-3">Suboff - Test filters for subtitles</h1>
+<h1 class="mt-3">Subfilter for Netflix - Test filters for subtitles</h1>
 
 <form class="mt-5 mb-3" class="row">
 
@@ -45,7 +45,7 @@ Something hungry for blood.
 
 
 <footer class="text-center fst-italic pt-4">
-	<p>Created by <a href="https://twitter.com/hassmanm">Martin Hassman</a>. Source code on <a href="https://github.com/met/subadub">GitHub</a>. Based on <a href="https://github.com/rsimmons/subadub">rsimmons/subadub</a></p>
+	<p>Created by <a href="https://twitter.com/hassmanm">Martin Hassman</a>. Source code on <a href="https://github.com/met/subfilter">GitHub</a>. Based on <a href="https://github.com/rsimmons/subadub">rsimmons/subadub</a></p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" type="text/javascript" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
@@ -152,7 +152,7 @@ function initUI() {
 	initEvents();
 
 	document.getElementById("input").value = preparedText.english;
-	subaoff.createFilterSelector(document.getElementById("selector-container"), { "id" : "filter-type", "class" : "form-select mb-3", "aria-label": "Select filter", "style":"width:30%" });
+	subfilter.createFilterSelector(document.getElementById("selector-container"), { "id" : "filter-type", "class" : "form-select mb-3", "aria-label": "Select filter", "style":"width:30%" });
 }
 initUI();
 
@@ -164,7 +164,7 @@ function process() {
 	document.getElementById("processed").innerHTML = "";
 
 	for (const line of lines) {
-		let transformedLine = subaoff.filters.run(line);
+		let transformedLine = subfilter.filters.run(line);
 		//console.log({line, transformedLine});
 
 		let isError = checkForFilterErrors(line, transformedLine);

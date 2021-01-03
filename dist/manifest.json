@@ -1,7 +1,7 @@
  {
   "manifest_version": 2,
-  "name": "Subadub focus on listening edition",
-  "description" : "Enhanced Netflix subtitles for foreign language study",
+  "name": "Subfilter for Netflix",
+  "description" : "Filter Netflix subtitles for foreign language study",
   "version": "0.1.8",
   "icons": {
     "16": "icon16.png",
