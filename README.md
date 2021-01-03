@@ -1,10 +1,8 @@
-# Subadub / subaoff - focus on listening edition
+# Subfilter for Netflix
 
-## My Changes to Subadub
-
-This project ***Subadub / subaoff - focus on listening edition*** is a modified version of ***Subadub*** browser extension. 
+This project is a modified version of ***Subadub*** browser extension. 
 It helps with learning languages by watching Netflix movies. It is designed for language learners with a focus on practicing listening skills. 
-Movie subtitles are displayed with some letters/words missing. This forces you to focus more on listening.
+Movie subtitles are displayed with some letters/words filtered out. This forces you to focus more on listening.
 There are several subtitle modes, some easier, others more difficult, you can try which one suits your learning level.
 Code is tested mainly with English and Spanish subtitles but could be used with most languages based on the Latin alphabet.
 If it doesn't work correctly with your preferred language, you can open an issue and I can try to fix this.
@@ -18,7 +16,7 @@ Testers are wanted. Especially to test the project with more languages.
 - The lists of stop words are from [Alir3z4/stop-words](https://github.com/Alir3z4/stop-words) project. CC BY 4.0 License and from [stopwords-iso](https://github.com/stopwords-iso/stopwords-iso). MIT License.
 - For Spanish text is used [Lorca library](https://github.com/dmarman/lorca). MIT License.
 
-# Subadub (original)
+# Subadub (original project of Russel Simmons)
 
 Subadub is a browser extension for Chrome and Firefox that enhances Netflix subtitles for foreign language study.
 
