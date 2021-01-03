@@ -312,19 +312,26 @@ subaoff.filters = function() {
 				for (let i = 1; i < fragments.length; i++) {
 					//console.log( fragments[i] );
 
-					// Keep words/fragments at the beginning unchanged
+					// Keep words/fragments in the 1st subtitle part
 					if (i < nFragmentsToKeep) {
 						transformed = transformed + " " + fragments[i];
 					}
-					// Delete words/fragments at the end
+					// Delete words/fragments in the 2nd part
 					else {
 						// But check for common non-letter characters, like punctuation, we want to display these
+						// But do not include apostrophe, because this looks disturbing _'_ _ and is often in English subtitles
 
-						// SpecialCharacters : ["-", "♪", "'", ",", ".", "\"", "(", ")", ":", ";", ".", "?", "!", "¡", "¿"];
+						// "dash" must be in the first array field, to correctly form the reg. exp.
+						let specialCharacters = ["-", "♪", "(", ")", ",", "\"", ":", ";", ".", "?", "!", "¡", "¿"];
+						
+						let re = new RegExp("[" + specialCharacters.join("") + "]");         // create matching regexp like: /[-♪()]/
+						let re2 = new RegExp("[^" + specialCharacters.join("") + "]", "g"); // create negative global regexp like: /[^-♪()]/g
 
-						if (fragments[i].match(/[-♪()',":;.?!¡¿]/)) {
-							let replaced = fragments[i].replace(/[^-♪()',":;.?!¡¿]/g, "_"); // keep special characters, replace all others by underscore
-							replaced = replaced.replace(/_+/g, "_")  // remove duplicit underscores
+						//console.log({re, re2});
+
+						if (fragments[i].match(re)) {
+							let replaced = fragments[i].replace(re2, "_"); // keep special characters, replace all other characters by underscores
+							replaced = replaced.replace(/_+/g, "_")  // remove duplicit underscores, keep only one
 							transformed = transformed + " " + replaced;
 						}
 						else {
