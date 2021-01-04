@@ -1,6 +1,6 @@
 # Subfilter for Netflix
 
-Subfilter for Netflix is a browser extension that helps you **practice your listening skills** by watching Netflix movies in a foreign language. Movie **subtitles** are displayed with some words **filtered out**. This helps you to focus on listening.
+[Subfilter for Netflix](https://github.com/met/subfilter/wiki) is a browser extension that helps you **practice your listening skills** by watching Netflix movies in a foreign language. Movie **subtitles** are displayed with some words **filtered out**. This helps you to focus on listening.
 
 There are several subtitle filters, some easier, others more difficult. You can select the one that suits your learning level.
 
@@ -8,7 +8,7 @@ There are several subtitle filters, some easier, others more difficult. You can 
 
 [Check wiki](https://github.com/met/subfilter/wiki) for more help.
 
-Subfilter is tested mainly with English and Spanish subtitles but should work with every language based on the Latin alphabet and on some non-Latin too.
+Subfilter is tested mainly with English and Spanish subtitles but *should work with every language based on the Latin alphabet* and on some non-Latin too.
 If it doesn't work correctly with your preferred language, please open an issue and I can try to fix this.
 
 This project is a modified version of ***[Subadub](https://github.com/rsimmons/subadub)*** browser extension, which is project of Russel Simmons. Without Rusells' code I would have never been able to create this project. Thank you Russel.
