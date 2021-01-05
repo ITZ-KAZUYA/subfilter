@@ -24,8 +24,8 @@ Testers are wanted. Especially to test the project with more languages.
 
 ## Installation
 
-- [Subfilter for Google Chrome](TODO)
-- [Subfilter for Mozilla Firefox](TODO)
+- [Subfilter for Google Chrome](https://chrome.google.com/webstore/detail/subfilter-for-netflix/knglefkdmonaaodmfkipllpnjhoaelmn)
+- [Subfilter for Mozilla Firefox](https://addons.mozilla.org/cs/firefox/addon/subfilter/)
 
 ## Process to Publish a New Version
 
