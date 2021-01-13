@@ -1,5 +1,7 @@
 # Subfilter for Netflix
 
+With Subfilter you can improve your listening skills. If you watch movies with Subfilter every day you can feel results in 1-2 weeks.
+
 [Subfilter for Netflix](https://github.com/met/subfilter/wiki) is a browser extension that helps you **practice your listening skills** by watching Netflix movies in a foreign language. Movie **subtitles** are displayed with some words **filtered out**. This helps you to focus on listening.
 
 There are several subtitle filters, some easier, others more difficult. You can select the one that suits your learning level.
