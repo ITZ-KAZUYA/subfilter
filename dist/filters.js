@@ -62,7 +62,8 @@ subfilter.filterMultiLine = function(s) {
     const newLines = [];
     for (const line of lines) {
       let transformed = subfilter.filters.run(line);
-      // console.log({li: line, lo: blurred});
+      transformed = subfilter.filters.render(transformed);
+      // console.log({li: line, lo: transformed});
       newLines.push(transformed);
     }
 
@@ -79,8 +80,8 @@ subfilter.filters = function() {
 
 		let listing = {
 					"nofilter":    { name: "No filter",                   description: "Switch off filters.", run: nofilter },
-					"generalLatin": { name: "General filter - NORMAL (recommended)", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinNormal },
 					"generalLatinEasy": { name: "General filter - EASY", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinEasy },
+					"generalLatin": { name: "General filter - NORMAL (recommended)", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinNormal },
 					"generalLatinHard": { name: "General filter - HARD", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinHard },
 					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish, hide: true },
 					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish, hide: true },
@@ -129,6 +130,31 @@ subfilter.filters = function() {
 			}
 
 
+		}
+
+		// Render for HTML output.
+		// Exchange <del> mark-word </del> for double span actually hiding mark words
+		// TODO do not use "style" attribute, use "class" and make style changeable in settings
+		function render(s) {
+			let s1 = s.replace(/<del>/g, "<span style=\"border-bottom:solid 2px gray;\"><span style=\"visibility:hidden\">");
+			let s2 = s1.replace(/<\/del>/g, "</span></span>");
+
+			return s2;
+		}
+
+		// Render for Plain ASCII output
+		// All missing characters exchange by underscores
+		function renderIntoPlainAscii(s) {
+			// Delete <del> tags and replace every character inside these tags by underscore
+			// <del>abc</del> => ___
+			let s1 = s.replace(/<del>([^<]*)<\/del>/g,
+					function(m,p,o,s) {
+						//console.log({m,p,o,s});
+						return p.replace(/./g, "_");
+					}
+			 );
+
+			return s1;
 		}
 
 		// Some filters can use difficulty settings
@@ -271,7 +297,6 @@ subfilter.filters = function() {
 			return transformed;
 		}
 
-
 		// general filter for languages with latin alphabet that we do not handle more specifically
 		function generalLatin(s) {
 			let transformed;
@@ -337,24 +362,23 @@ subfilter.filters = function() {
 						// "dash" must be in the first array field, to correctly form the reg. exp.
 						let specialCharacters = ["-", "♪", "(", ")", ",", "\"", ":", ";", ".", "?", "!", "¡", "¿"];
 						
-						let re = new RegExp("[" + specialCharacters.join("") + "]");         // create matching regexp like: /[-♪()]/
-						let re2 = new RegExp("[^" + specialCharacters.join("") + "]", "g"); // create negative global regexp like: /[^-♪()]/g
+						let re = new RegExp("[" + specialCharacters.join("") + "]");           // create matching regexp like: /[-♪()]/
+						let re2 = new RegExp("([^" + specialCharacters.join("") + "]+)", "g"); // create negative global regexp like: /([^-♪()]+)/g
 
 						//console.log({re, re2});
 
-						if (fragments[i].match(re)) {
-							let replaced = fragments[i].replace(re2, "_"); // keep special characters, replace all other characters by underscores
-							replaced = replaced.replace(/(_+)/g, "<span style=\"border: solid 1px gray;\"><span style=\"visibility:hidden\"\>$1\<\/span><\/span>")  // remove duplicit underscores, keep only one
+						if (fragments[i].match(re)) { // found special character
+							let replaced = fragments[i].replace(re2, "<del>$1</del>"); // keep special characters, others must be put inside <del> tags
+							// Replace abc,def => <del>abc</del>,<del>def</del>
 							transformed = transformed + " " + replaced;
 						}
+						// no special characters, just wrap fragment inside <del> tags
 						else {
-
 							if (fragments[i] === "") { // Without this check will string terminating on space like "I read " genereate an additional " _ " at the end during filtering, issue #12, #13
-								transformed = transformed + " "; 
+								transformed = transformed + " ";
 							}
 							else {
-								transformed = transformed + " _ ";
-								// transformed = transformed + " " + "<span style=\"border: solid 1px gray;\"><span style=\"visibility:hidden\">"+ fragments[i] + "</span></span>";
+								transformed = transformed + " " + "<del>"+ fragments[i] + "</del>";
 							}
 						}
 					}
@@ -385,7 +409,7 @@ subfilter.filters = function() {
 			return generalLatin(s);
 		}
 
-	return {run, runByName, select, list, register};
+	return {run, runByName, select, list, register, render, renderIntoPlainAscii};
 }();
 
 subfilter.stopWords = {};

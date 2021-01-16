@@ -167,6 +167,7 @@ function process() {
 
 	for (const line of lines) {
 		let transformedLine = subfilter.filters.run(line);
+		transformedLine = subfilter.filters.renderIntoPlainAscii(transformedLine);
 		//console.log({line, transformedLine});
 
 		let isError = checkForFilterErrors(line, transformedLine);
@@ -175,7 +176,7 @@ function process() {
 			class2ndCol = "bg-danger text-white";
 		}
 		// do not forget to escape HTML output, change "<" into "&lt;""
-		output += "<tr><td>" + htmlEscape(line) + "</td><td class=\"" + class2ndCol + "\">" + (transformedLine) + "</td></tr>";
+		output += "<tr><td>" + htmlEscape(line) + "</td><td class=\"" + class2ndCol + "\">" + htmlEscape(transformedLine) + "</td></tr>";
 	}
 
 	output += "</tbody></table>";
@@ -247,6 +248,12 @@ function checkForFilterErrors(ori, filt) {
 		console.log({ori, filt, msg:"Not the same"});
 		console.log(ori1);
 		console.log(filt1);
+		return true;
+	}
+
+	// String length should be the same
+	if (ori.length !== filt.length) {
+		console.log({ori, filt, msg:"Different length"});
 		return true;
 	}
 
