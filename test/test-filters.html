@@ -173,7 +173,7 @@ function process() {
 			class2ndCol = "bg-danger text-white";
 		}
 		// do not forget to escape HTML output, change "<" into "&lt;""
-		output += "<tr><td>" + htmlEscape(line) + "</td><td class=\"" + class2ndCol + "\">" + htmlEscape(transformedLine) + "</td></tr>";
+		output += "<tr><td>" + htmlEscape(line) + "</td><td class=\"" + class2ndCol + "\">" + (transformedLine) + "</td></tr>";
 	}
 
 	output += "</tbody></table>";

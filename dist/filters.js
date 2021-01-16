@@ -344,11 +344,12 @@ subfilter.filters = function() {
 
 						if (fragments[i].match(re)) {
 							let replaced = fragments[i].replace(re2, "_"); // keep special characters, replace all other characters by underscores
-							replaced = replaced.replace(/_+/g, "_")  // remove duplicit underscores, keep only one
+							replaced = replaced.replace(/(_+)/g, "<span style=\"border: solid 1px gray;\"><span style=\"visibility:hidden\"\>$1\<\/span><\/span>")  // remove duplicit underscores, keep only one
 							transformed = transformed + " " + replaced;
 						}
 						else {
-							transformed = transformed + " _ ";
+							//transformed = transformed + " _ ";
+							transformed = transformed + " " + "<span style=\"border: solid 1px gray;\"><span style=\"visibility:hidden\">"+ fragments[i] + "</span></span>";
 						}
 					}
 				}
