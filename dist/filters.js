@@ -348,8 +348,14 @@ subfilter.filters = function() {
 							transformed = transformed + " " + replaced;
 						}
 						else {
-							//transformed = transformed + " _ ";
-							transformed = transformed + " " + "<span style=\"border: solid 1px gray;\"><span style=\"visibility:hidden\">"+ fragments[i] + "</span></span>";
+
+							if (fragments[i] === "") { // Without this check will string terminating on space like "I read " genereate an additional " _ " at the end during filtering, issue #12, #13
+								transformed = transformed + " "; 
+							}
+							else {
+								transformed = transformed + " _ ";
+								// transformed = transformed + " " + "<span style=\"border: solid 1px gray;\"><span style=\"visibility:hidden\">"+ fragments[i] + "</span></span>";
+							}
 						}
 					}
 				}
