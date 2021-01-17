@@ -1,4 +1,5 @@
 <!doctype html>
+<html lang="en">
 <meta charset="utf-8">
 <title>Subfilter for Netflix - test filters</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,13 +19,16 @@
 <select id="select-input-prefil" class="form-select mb-3" aria-label="Select prepared text" style="width:30%">
 	<option value="english" selected>English</option>
 	<option value="spanish">Spanish</option>
+	<option value="simplifiedChinese">simplified Chinese</option>
 </select>
 </div>
 
 <label for="input" class="form-label">Text of subtitles:</label>
-<textarea id="input" class="form-control mb-3" style="height:20em" lang="es">
-Something is coming.
-Something hungry for blood.
+<textarea id="input" class="form-control mb-3" style="height:20em" lang="">
+You know, I'm just taking a break
+from the real world.
+and I can't even afford to flight
+to go see her.
 </textarea>
 
 <div>
@@ -134,6 +138,32 @@ la negociación".
 a los policías heridos.
 -Pues ya te lo he explicado, Paula.
 Es como cuando fuimos al <i>bat mitzvá</i>`;
+
+preparedText.simplifiedChinese = `NETFLIX 原创剧集‬
+‪这个蛋糕要更有皇族气派‬
+‪多用点柱子 多加些糖霜‬
+而且这两个家伙都不像我
+把他们都做成我的样子‬
+‪然后拿掉一个！‬
+‪求你了 让我去远征吧！‬
+‪上去吧 殿下？‬
+‪-抱歉 我不能参加你的婚礼了‬
+‪-你想跟我交换一下吗？‬
+‪不 不用了‬
+（瘟疫巡逻车）‬
+‪早上好 公主‬
+‪要试试我新制的万能药吗？‬
+‪安静！班特伍德使团随时有可能抵达‬
+‪闭嘴！安静！‬
+‪上面写着…‬
+‪-你是魔法生物 对吧？‬
+‪-对‬
+-你呢？‬
+‪-我可能是‬
+‪“滚蛋 老爸”‬
+蛋糕啊
+‪一、二、我
+‪跟‬`;
 
 function initEvents() {
 	document.getElementById("btn-process").onclick = function(e) {

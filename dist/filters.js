@@ -83,6 +83,7 @@ subfilter.filters = function() {
 					"generalLatinEasy": { name: "General filter - EASY", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinEasy },
 					"generalLatin": { name: "General filter - NORMAL (recommended)", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinNormal },
 					"generalLatinHard": { name: "General filter - HARD", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinHard },
+					"chinesejapanese" : { name: "Chinese/Japanese experimental filter", description: "", run: chinesejapanese },
 					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish, hide: true },
 					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish, hide: true },
 //					"easyTesting": { name: "Elemental (ony for testing)", description: "Really stupid method", run: easyTesting },
@@ -129,7 +130,6 @@ subfilter.filters = function() {
 				throw "Error. Not able to register new filter"
 			}
 
-
 		}
 
 		// Render for HTML output.
@@ -169,6 +169,57 @@ subfilter.filters = function() {
 				filterDifficulty = value;
 			}
 		}
+
+		//////////////////////////////////////////////////
+		// Sets with special characters
+		// used by filters
+
+		const specialChars = {
+			// Special chars that are often at the beginning of subtitle string
+			startingChars: ["-", "♪", " ", "'", ",", ".", "\"", "("],
+
+			// Common non-letter characters, like punctuation
+			// Do not include apostrophe, because this looks disturbing _'_ _ and apostrophe is often in English subtitles
+			// "dash" must be in the first array field, to correctly form the RegExp bracket expression otherwise will be confused with a range operator
+			generalChars: ["-", "♪", "(", ")", ",", "\"", "“", "”", ":", ";", ".", "?", "!", "¡", "¿", "…‬"],
+
+			// FullWidthCharacters commonly used in some Asian environment (eg. Chinese)
+			// May look similar like characters used in Europe, but are different
+			// eg. ! and ！ are different characters, "Exclamation Mark" and "Fullwidth Exclamation Mark"
+			// Use http://www.mauvecloud.net/charsets/CharCodeFinder.html to quickly check UTF16 characters codes
+			// If necesary, they can be normalized by Compatibility Decomposition with string.normalize("NFKC") or strong.normalize("NFKD")
+			// see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/normalize
+
+			fullWidthChars: [
+				"（",	// Fullwidth Left Parenthesis
+				"）",	// Fullwidth Right Parenthesis
+				"！",	// Fullwidth Exclamation Mark
+				"？",	// Fullwidth Question Mark https://www.compart.com/en/unicode/U+FF1F
+				"：",	// Fullwidth Colon
+				"，",	// Fullwidth Comma
+			],
+
+			// Another Asian special characters that do not belong to the other groups
+			otherAsianChars: [
+				"、",	// 、  = Ideographic Comma https://www.yourdictionary.com/ideographic-comma				
+			],
+
+
+			arabicChars: [
+				"\u061f",	// Arabic Question Mark https://www.compart.com/en/unicode/U+061F
+				"\u060c",	// Arabic Comma
+			],
+
+			// White space characters for bidirectional text, see https://en.wikipedia.org/wiki/Bidirectional_text and https://www.unicode.org/reports/tr9/
+			bidiChars: [
+			"\u202a",	// Left-to-Right embedding https://www.compart.com/en/unicode/U+202A
+			"\u202b",	// Right-to-Left embedding https://www.compart.com/en/unicode/U+202B
+			"\u202c",	// PDF = Pop Directional Formatting https://www.compart.com/en/unicode/U+202C
+			"\u202d",	// Left-to-Right override
+			"\u202e",	// Right-to-Left override
+			],
+		};
+
 
 		/////////////////////////////////////////////
 		// All filters are defined here:
@@ -305,7 +356,7 @@ subfilter.filters = function() {
 
 			// Handle some special characters at the beginning
 			// these are characters often found at subtitle beginning, we keep them unchanged and transform rest of the string
-			let startingCharacters = ["-", "♪", " ", "'", ",", ".", "\"", "("];
+			let startingCharacters = [...specialChars.startingChars];
 
 			if (startingCharacters.includes(s.charAt(0))) {
 				transformed = s.charAt(0) + generalLatin(s.substring(1));
@@ -336,13 +387,13 @@ subfilter.filters = function() {
 			}
 			else
 			{
-				// Finally here, decide which words to delete
+				// Finally here, decide which words to hide
 				// Split text into fragments between spaces (usually words, but also numbers, punctuations etc.) and check every fragment
 				// \s is can be any type of space character including tabulator. But most usually it is space. At least in subtitles.
 				let fragments = s.split(/\s/);
 				//console.log(fragments.length);
 
-				// Coeficient, who large part of the text to delete
+				// Coeficient, who large part of the text to hide
 				let coef = filterDifficulty; // 3 = hard, 2 = normal, 1.5 = easy
 				let nFragmentsToKeep =  Math.round(fragments.length / coef);
 				transformed = fragments[0]; // start 1st fragment
@@ -356,14 +407,11 @@ subfilter.filters = function() {
 					}
 					// Delete words/fragments in the 2nd part
 					else {
-						// But check for common non-letter characters, like punctuation, we want to display these
-						// But do not include apostrophe, because this looks disturbing _'_ _ and is often in English subtitles
-
-						// "dash" must be in the first array field, to correctly form the reg. exp.
-						let specialCharacters = ["-", "♪", "(", ")", ",", "\"", ":", ";", ".", "?", "!", "¡", "¿"];
+						// But check for common non-letter characters, like punctuation, we do not want to hide them
+						let specialCharacters = [...specialChars.generalChars, ...specialChars.arabicChars];
 						
-						let re = new RegExp("[" + specialCharacters.join("") + "]");           // create matching regexp like: /[-♪()]/
-						let re2 = new RegExp("([^" + specialCharacters.join("") + "]+)", "g"); // create negative global regexp like: /([^-♪()]+)/g
+						let re = new RegExp("[" + specialCharacters.join("") + "]");           // create matching regexp for detecting special chars like: /[-♪()]/
+						let re2 = new RegExp("([^" + specialCharacters.join("") + "]+)", "g"); // create negative global regexp for replacing non-special chars like: /([^-♪()]+)/g
 
 						//console.log({re, re2});
 
@@ -407,6 +455,86 @@ subfilter.filters = function() {
 
 			setFilterDifficulty(3);
 			return generalLatin(s);
+		}
+
+		// Very simple filter that should work on most of Chinese and Japanese texts
+		// I do not know Chinese nor Japanese, hope I find someone who knows it and will help me improve this filter
+		function chinesejapanese(s) {
+			let transformed;
+
+			if (!s) { return s; } // sometimes s is empty string
+
+			// Handle some special characters at the beginning
+			// these are characters often found at subtitle beginning, we keep them unchanged and transform rest of the string
+			let startingCharacters = [...specialChars.startingChars, ...specialChars.bidiChars];
+
+			if (startingCharacters.includes(s.charAt(0))) {
+				transformed = s.charAt(0) + chinesejapanese(s.substring(1));
+			}
+
+			// Handle subtitle markup
+			// Sometimes subtitles contains html markup, usualy <b>, <i>, <u> and </b>, </i>, </u>.
+			// Keep text inside <> without change and transform the rest
+			// Note: there can be more tags in one text, and might not necesary be in pairs
+			else if (s.match(/<[^>]+>/)) { // looking for < anything in angle brackets >
+			
+				// we need to find all <tags>, for which we use global string.replace with callback function
+				transformed = s.replace(/([^<>]*)(<[^<>]+>)([^<>]*)/g,
+					function(m,p1,p2,p3,o,s,g) { // m contains one whole match, p1 text before <angle bracket>, p2 text inside <angle bracket> including brackets, p3 text after <angle bracket>
+						//console.log({m:m,p1:p1,p2:p2,p3:p3,o:o,s:s,g:g});
+						return chinesejapanese(p1) + p2 + chinesejapanese(p3);
+					}
+				);
+			}
+			// Handle [text in brackets]
+			// It this usually comment, that is not part of speach
+			// Keep all text inside brackets without change and transform the rest
+
+			else if (s.match(/\[[^\]]+\]/)) { // looking for [ anything in square brackets ]
+				let results = s.match(/(.*)(\[[^\]]+\])(.*)/); // results[1] contains text before [backets], results[2] containts text inside [backets] including brackets, results[3] text after [backets]
+				transformed = generalLatin(results[1]) + results[2] + generalLatin(results[3]);
+			}
+
+			// Very short strings returns unchanged
+			else if (s.length < 3) {
+				return s;
+			}
+			else {
+
+				// Finally here, decide which words to hide
+				// There still can be some special characters that we want to keep (e.g. "!", "?")
+
+				const deletePart = 0.3;	// 0.25 = we hide 25% of the text, 0.5 = 50% etc
+				const howManyCharactersKeep = Math.floor(s.length * (1 - deletePart));
+				const howManyCharactersRemove = s.length - howManyCharactersKeep;
+
+				let specialCharacters = [
+					...specialChars.generalChars,
+					" ",		// add space (because for Chinese and Japanese subtitles is space a special character that should be preserved and not just word separator like in general filter)
+					...specialChars.fullWidthChars,
+					...specialChars.otherAsianChars
+				];
+
+				let re = new RegExp("[" + specialCharacters.join("") + "]");           // create matching regexp for detecting special chars like: /[-♪()]/
+				let re2 = new RegExp("([^" + specialCharacters.join("") + "]+)", "g"); // create negative global regexp for replacing non-special chars like: /([^-♪()]+)/g
+
+				// easy no special chars detected
+				// just hide what we want to hide
+				if (!s.match(re)) {
+
+					transformed = s.substring(0, howManyCharactersKeep) + "<del>" + s.substring(howManyCharactersKeep) + "</del>";
+				}
+				// need to be careful, there are some special chars
+				else {
+					const partToKeep = s.substring(0, howManyCharactersKeep);
+					const partToRemove = s.substring(howManyCharactersKeep);
+
+					let replaced = partToRemove.replace(re2, "<del>$1</del>");  // keep special characters, others put inside <del> tags
+					transformed = partToKeep + replaced;
+				}
+			}
+
+			return transformed;			
 		}
 
 	return {run, runByName, select, list, register, render, renderIntoPlainAscii};
