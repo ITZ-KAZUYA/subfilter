@@ -78,6 +78,22 @@ subfilter.filterMultiLine = function(s) {
     return newLines.join('\n');	
 }
 
+// s contains multiline vtt cue text
+// process each line individually
+// For use in plain text output
+subfilter.filterMultiLinePlainAscii = function(s) {
+    const lines = s.split('\n');
+    const newLines = [];
+    for (const line of lines) {
+      let transformed = subfilter.filters.run(line);
+      transformed = subfilter.filters.renderIntoPlainAscii(transformed);
+      // console.log({li: line, lo: transformed});
+      newLines.push(transformed);
+    }
+
+    return newLines.join('\n');
+}
+
 //////////////////////////////////////////////////////
 // Manager for selecting/runing filters
 //
@@ -437,7 +453,12 @@ subfilter.filters = function() {
 						if (fragments[i].match(re)) { // found special character
 							let replaced = fragments[i].replace(re2, "<del>$1</del>"); // keep special characters, others must be put inside <del> tags
 							// Replace abc,def => <del>abc</del>,<del>def</del>
-							transformed = transformed + " " + replaced;
+							if (transformed == undefined || transformed == "") {
+								transformed = replaced
+							}
+							else {
+								transformed = transformed + " " + replaced;
+							}
 						}
 						// no special characters, just wrap fragment inside <del> tags
 						else {
@@ -445,7 +466,12 @@ subfilter.filters = function() {
 								transformed = transformed + " ";
 							}
 							else {
-								transformed = transformed + " " + "<del>"+ fragments[i] + "</del>";
+								if (transformed == undefined || transformed == "") {
+									transformed = "<del>"+ fragments[i] + "</del>";
+								}
+								else {
+									transformed = transformed + " " + "<del>"+ fragments[i] + "</del>";
+								}
 							}
 						}
 					}

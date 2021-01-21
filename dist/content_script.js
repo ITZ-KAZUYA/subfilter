@@ -229,7 +229,7 @@ scriptElem.text = `
     for (const cue of trackElem.track.cues) {
       let cleanedText = vttTextToSimple(cue.text, true);
 
-      if (filtervtt && subfilter && subfilter.filterMultiLine) { cleanedText = subfilter.filterMultiLine(cleanedText); }
+      if (filtervtt && subfilter && subfilter.filterMultiLinePlainAscii) { cleanedText = subfilter.filterMultiLinePlainAscii(cleanedText); }
 
       srtChunks.push(idx + '\\n' + formatTime(cue.startTime) + ' --> ' + formatTime(cue.endTime) + '\\n' + cleanedText + '\\n\\n');
       idx++;
