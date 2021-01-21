@@ -91,10 +91,10 @@ subfilter.filters = function() {
 					"generalLatinEasy": { name: "General filter - EASY", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinEasy },
 					"generalLatin": { name: "General filter - NORMAL (recommended)", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinNormal },
 					"generalLatinHard": { name: "General filter - HARD", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinHard },
+					"generalHardcore" : { name: "General HARDCORE filter - hard and deadly", description: "If other filters are too easy for you, try this one. How many minutes can you survive?", run: generalHardcore },
 					"chinesejapanese" : { name: "Chinese/Japanese experimental filter", description: "", run: chinesejapanese },
 					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish, hide: true },
 					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish, hide: true },
-//					"easyTesting": { name: "Elemental (ony for testing)", description: "Really stupid method", run: easyTesting },
 				};
 
 		// run currently selected filter
@@ -174,7 +174,7 @@ subfilter.filters = function() {
 		let filterDifficulty = 2; // 3 = hard, 2 = normal, 1.5 = easy
 
 		function setFilterDifficulty(value) {
-			if (!value) {             // no value = reset difficulty to normal
+			if (value == undefined) {             // no value = reset difficulty to normal
 				filterDifficulty = 2; // 2 = normal difficulty
 			}
 			else {
@@ -237,12 +237,8 @@ subfilter.filters = function() {
 		// All filters are defined here:
 		//
 
-		// this one just for testing
-		function easyTesting(s) {
-			return s.replace(/(\W\w+)/ig, " _ ");
-		}
 
-		// nofilter is filter too, just change nothing
+		// nofilter is filter too, but change nothing
 		function nofilter(s) {
 			return s;
 		}
@@ -407,10 +403,21 @@ subfilter.filters = function() {
 
 				// Coeficient, who large part of the text to hide
 				let coef = filterDifficulty; // 3 = hard, 2 = normal, 1.5 = easy
-				let nFragmentsToKeep =  Math.round(fragments.length / coef);
-				transformed = fragments[0]; // start 1st fragment
+				let nFragmentsToKeep;
+				let cycleStartWithFragmentNo; // index, with which fragment start for cycle 1st iteration
 
-				for (let i = 1; i < fragments.length; i++) {
+				if (coef == 0) {  // HARDCORE difficulty: filterDifficulty == 0, coef == 0, nFragmentsToKeep == 0
+					nFragmentsToKeep = 0;
+					transformed = "";
+					cycleStartWithFragmentNo = 0; // In HARDCORE we start hiding with the 1st word
+				}
+				else {
+					nFragmentsToKeep =  Math.round(fragments.length / coef);
+					transformed = fragments[0]; // start 1st fragment
+					cycleStartWithFragmentNo = 1; // In filters other then hardcore we starting hiding from the 2nd word, just make sure at least 1st word stay
+				}
+
+				for (let i = cycleStartWithFragmentNo; i < fragments.length; i++) {
 					//console.log( fragments[i] );
 
 					// Keep words/fragments in the 1st subtitle part
@@ -469,6 +476,13 @@ subfilter.filters = function() {
 			return generalLatin(s);
 		}
 
+		// This is a proxy around generalLatin filter, make HARDCORE settings
+		function generalHardcore(s) {
+			setFilterDifficulty(0);
+			return generalLatin(s);			
+		}
+
+
 		// Very simple filter that should work on most of Chinese and Japanese texts
 		// I do not know Chinese nor Japanese, hope I find someone who knows it and will help me improve this filter
 		function chinesejapanese(s) {
@@ -504,7 +518,7 @@ subfilter.filters = function() {
 
 			else if (s.match(/\[[^\]]+\]/)) { // looking for [ anything in square brackets ]
 				let results = s.match(/(.*)(\[[^\]]+\])(.*)/); // results[1] contains text before [backets], results[2] containts text inside [backets] including brackets, results[3] text after [backets]
-				transformed = generalLatin(results[1]) + results[2] + generalLatin(results[3]);
+				transformed = chinesejapanese(results[1]) + results[2] + chinesejapanese(results[3]);
 			}
 
 			// Very short strings returns unchanged
