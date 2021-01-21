@@ -42,8 +42,16 @@ subfilter.createFilterSelector = function (parent, options, includeHiddenFilters
 	let lastFilterName = localStorage.getItem(subfilter.storageLastFilterKey);
 
 	if (lastFilterName) {
-		subfilter.filters.select(lastFilterName);
-		selectElem.value = lastFilterName;
+		try {
+			subfilter.filters.select(lastFilterName);
+			selectElem.value = lastFilterName;			
+		}
+		catch (error) {
+			let defaultFilterName = subfilter.filters.selectDefaultFilter();
+			selectElem.value = defaultFilterName;
+			console.info("lastFilterName contains wrong value, switching to default", lastFilterName);
+		}
+
 	}
 
 	selectElem.addEventListener("change", function(e) {
@@ -75,7 +83,7 @@ subfilter.filterMultiLine = function(s) {
 //
 subfilter.filters = function() {
 
-		let defaultFilter = "nofilter";
+		const defaultFilter = "nofilter";
 		let currentFilter = defaultFilter;
 
 		let listing = {
@@ -103,12 +111,16 @@ subfilter.filters = function() {
 			throw "Error. Unknow filter name.";
 		}
 
+		function selectDefaultFilter() {
+			return select(defaultFilter);
+		}
+
 		function select(name) {
 			if (name in listing) {
 				currentFilter = name;
 			}
 			else {
-				console.error({name});
+				console.error("Error. Unknow filter name.", {name});
 				throw "Error. Unknow filter name.";
 			}
 			return name;
@@ -537,7 +549,7 @@ subfilter.filters = function() {
 			return transformed;			
 		}
 
-	return {run, runByName, select, list, register, render, renderIntoPlainAscii};
+	return {run, runByName, select, selectDefaultFilter, list, register, render, renderIntoPlainAscii};
 }();
 
 subfilter.stopWords = {};
