@@ -11,7 +11,10 @@
 	// You can define how many filters you want
 
 	function customFilter1(s) {
-		return s.replace(/(\w+)/, " CREATE YOUR OWN CUSTOM FILTER. SEE DOCUMENTATION. ");
+		// Mark fragments that should by <del> and </del> tags
+		// Example: "I am your father!" === change into === > "I am your <del>father</del>!" to see "I am your ______!"
+
+		return s.replace(/(\w+)/, " CREATE YOUR <del>OWN</del> CUSTOM FILTER. See DOC. ");
 	}
 
 	/*
