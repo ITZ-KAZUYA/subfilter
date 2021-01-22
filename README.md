@@ -4,29 +4,31 @@ With Subfilter you can improve your listening skills. If you watch movies with S
 
 [Subfilter for Netflix](https://github.com/met/subfilter/wiki) is a browser extension that helps you **practice your listening skills** by watching Netflix movies in a foreign language. Movie **subtitles** are displayed with some words **filtered out**. This helps you to focus on listening.
 
-There are several subtitle filters, some easier, others more difficult. You can select the one that suits your learning level.
+There are several subtitle filters, some easier, others more difficult. You can [select the one](https://github.com/met/subfilter/wiki/Best-ways-for-learning-with-movies,-series-and-subtitles) that suits your learning level.
 
 ![Screenshot of Subfilter User Interface](https://github.com/met/subfilter/raw/master/img/subfilter-ui-small.png)
 
-## Installation
+## Installation (for <a href="https://chrome.google.com/webstore/detail/subfilter-for-netflix/knglefkdmonaaodmfkipllpnjhoaelmn">Chrome</a>/<a hrref="https://addons.mozilla.org/cs/firefox/addon/subfilter/">Firefox</a>)
 
-- [Subfilter for Google Chrome](https://chrome.google.com/webstore/detail/subfilter-for-netflix/knglefkdmonaaodmfkipllpnjhoaelmn)
-- [Subfilter for Mozilla Firefox](https://addons.mozilla.org/cs/firefox/addon/subfilter/)
+<a href="https://chrome.google.com/webstore/detail/subfilter-for-netflix/knglefkdmonaaodmfkipllpnjhoaelmn"><img src="https://user-images.githubusercontent.com/59498/105509797-2e9d2100-5cce-11eb-8f9c-937d3a0c4f44.png" alt="Install Subfilter for Google Chrome" title="Install Subfilter for Firefox"></a>  <a href="https://addons.mozilla.org/cs/firefox/addon/subfilter/"><img src="https://user-images.githubusercontent.com/59498/105511058-c3ece500-5ccf-11eb-9468-d33eb49e05ab.png" alt="Install Subfilter for Firefox" title="Install Subfilter for Firefox"></a>
 
+## Project story, documentation and Best practices for learning
 
-[Check wiki](https://github.com/met/subfilter/wiki) for help and more information.
+[Check Subfilter wiki](https://github.com/met/subfilter/wiki), where you can find help and more information. If you have any question, ask in [project discussions](https://github.com/met/subfilter/discussions).
 
-Subfilter is tested mainly with English and Spanish subtitles but *should work with every language based on the Latin alphabet* and on some non-Latin too.
-If it doesn't work correctly with your preferred language, please open an [issue](https://github.com/met/subfilter/issues) or write me e-mail and I will try to fix it.
+## Which Languages does Subfilter support?
 
-## Base on Subadub
+Subfilter should work with every language available on Netflix. It is tested mainly with English and Spanish.
+If you found any problem with your preferred language, please open an [issue](https://github.com/met/subfilter/issues) or write me e-mail and I will try to fix it.
+
+## Based on Subadub
 
 This project is a modified version of ***[Subadub](https://github.com/rsimmons/subadub)*** browser extension, which is project of Russel Simmons. Without Rusells' code I would have never been able to create this project. Thank you Russel.
 
 All code is available under MIT license, except where otherwise stated.
 
 ## Acknowledgment
-- This project use code base on the original [Subadub extension](https://github.com/rsimmons/subadub). MIT License.
+- Part of this project is code from the original [Subadub extension](https://github.com/rsimmons/subadub). MIT License.
 - The lists of stop words are from [Alir3z4/stop-words](https://github.com/Alir3z4/stop-words) project (CC BY 4.0 License) and from [stopwords-iso](https://github.com/stopwords-iso/stopwords-iso) (MIT License).
 
 
