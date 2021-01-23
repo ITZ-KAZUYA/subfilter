@@ -572,4 +572,7 @@ const scriptElem3 = document.createElement('script');
 scriptElem3.src = chrome.extension.getURL('custom_filters.js');
 document.head.insertBefore(scriptElem3, document.head.firstChild);
 
+if (chrome && chrome.runtime && chrome.runtime.getManifest) {
+  console.log(chrome.runtime.getManifest().name, chrome.runtime.getManifest().version);
+}
 // console.log('content script finished');
