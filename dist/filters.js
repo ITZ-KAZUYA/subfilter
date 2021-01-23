@@ -108,6 +108,7 @@ subfilter.filters = function() {
 					"generalLatin": { name: "General filter - NORMAL (recommended)", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinNormal },
 					"generalLatinHard": { name: "General filter - HARD", description: "General filter for languages with latin alphabet. Use it if there is not any more specified filter.", run: generalLatinHard },
 					"generalHardcore" : { name: "General HARDCORE filter - hard and deadly", description: "If other filters are too easy for you, try this one. How many minutes can you survive?", run: generalHardcore },
+					"generalReverse" : { name: "General reverse filter", description: "When you missed the beginning.", run: generalReverse },
 					"chinesejapanese" : { name: "Chinese/Japanese experimental filter", description: "", run: chinesejapanese },
 					"easyEnglish": { name: "English friendly",            description: "Optimized for English, understand basic English stop words.", run: easyEnglish, hide: true },
 					"easySpanish": { name: "Spanish friendly",            description: "Optimized for Spanish, understand basic Spanish stop words.", run: easySpanish, hide: true },
@@ -121,7 +122,7 @@ subfilter.filters = function() {
 		// run filter with given name
 		function runByName(name, s) {
 			if (name in listing) {
-				return listing[name].run(s)				
+				return listing[name].run(s)
 			}
 			console.error({name, s});
 			throw "Error. Unknow filter name.";
@@ -150,8 +151,8 @@ subfilter.filters = function() {
 		// register custom filter
 		function register(key, name, description, run) {
 			if (key && typeof key === "string" && name && typeof name === "string" && description && typeof description === "string" && run && typeof run == "function") {
-				// console.log("New filter registered", {key, name, description, run})				
-				listing[key] = {name: name, description: description, run: run};				
+				// console.log("New filter registered", {key, name, description, run})
+				listing[key] = {name: name, description: description, run: run};
 			}
 			else {
 				console.error({key, name, description, run});
@@ -444,7 +445,7 @@ subfilter.filters = function() {
 					else {
 						// But check for common non-letter characters, like punctuation, we do not want to hide them
 						let specialCharacters = [...specialChars.generalChars, ...specialChars.arabicChars];
-						
+
 						let re = new RegExp("[" + specialCharacters.join("") + "]");           // create matching regexp for detecting special chars like: /[-♪()]/
 						let re2 = new RegExp("([^" + specialCharacters.join("") + "]+)", "g"); // create negative global regexp for replacing non-special chars like: /([^-♪()]+)/g
 
@@ -453,24 +454,29 @@ subfilter.filters = function() {
 						if (fragments[i].match(re)) { // found special character
 							let replaced = fragments[i].replace(re2, "<del>$1</del>"); // keep special characters, others must be put inside <del> tags
 							// Replace abc,def => <del>abc</del>,<del>def</del>
-							if (transformed == undefined || transformed == "") {
-								transformed = replaced
+							if (transformed) {
+								transformed = transformed + " " + replaced;
 							}
 							else {
-								transformed = transformed + " " + replaced;
+								transformed = replaced;
 							}
 						}
 						// no special characters, just wrap fragment inside <del> tags
 						else {
 							if (fragments[i] === "") { // Without this check will string terminating on space like "I read " genereate an additional " _ " at the end during filtering, issue #12, #13
-								transformed = transformed + " ";
-							}
-							else {
-								if (transformed == undefined || transformed == "") {
-									transformed = "<del>"+ fragments[i] + "</del>";
+								if (transformed) {
+									transformed = transformed + " ";
 								}
 								else {
+									transformed = "";
+								}
+							}
+							else {
+								if (transformed) {
 									transformed = transformed + " " + "<del>"+ fragments[i] + "</del>";
+								}
+								else {
+									transformed = "<del>"+ fragments[i] + "</del>";
 								}
 							}
 						}
@@ -505,9 +511,121 @@ subfilter.filters = function() {
 		// This is a proxy around generalLatin filter, make HARDCORE settings
 		function generalHardcore(s) {
 			setFilterDifficulty(0);
-			return generalLatin(s);			
+			return generalLatin(s);
 		}
 
+		// Similar like generalLatin filter, but miss words at beginning
+		function generalReverse(s) {
+			let transformed;
+
+			if (!s) { return s; } // sometimes s is empty string
+
+			// Handle some special characters at the beginning
+			// these are characters often found at subtitle beginning, we keep them unchanged and transform rest of the string
+			let startingCharacters = [...specialChars.startingChars];
+
+			if (startingCharacters.includes(s.charAt(0))) {
+				transformed = s.charAt(0) + generalReverse(s.substring(1));
+			}
+
+			// Handle subtitle markup
+			// Sometimes subtitles contains html markup, usualy <b>, <i>, <u> and </b>, </i>, </u>.
+			// Keep text inside <> without change and transform the rest
+			// Note: there can be more tags in one text, and might not necesary be in pairs
+			else if (s.match(/<[^>]+>/)) { // looking for < anything in angle brackets >
+
+				// we need to find all <tags>, for which we use global string.replace with callback function
+				transformed = s.replace(/([^<>]*)(<[^<>]+>)([^<>]*)/g,
+					function(m,p1,p2,p3,o,s,g) { // m contains one whole match, p1 text before <angle bracket>, p2 text inside <angle bracket> including brackets, p3 text after <angle bracket>
+						//console.log({m:m,p1:p1,p2:p2,p3:p3,o:o,s:s,g:g});
+						return generalReverse(p1) + p2 + generalReverse(p3);
+					}
+				);
+			}
+
+			// Handle [text in brackets]
+			// It this usually comment, that is not part of speach
+			// Keep all text inside brackets without change and transform the rest
+
+			else if (s.match(/\[[^\]]+\]/)) { // looking for [ anything in square brackets ]
+				let results = s.match(/(.*)(\[[^\]]+\])(.*)/); // results[1] contains text before [backets], results[2] containts text inside [backets] including brackets, results[3] text after [backets]
+				transformed = generalReverse(results[1]) + results[2] + generalReverse(results[3]);
+			}
+			else
+			{
+				// Finally here, decide which words to hide
+				// Split text into fragments between spaces (usually words, but also numbers, punctuations etc.) and check every fragment
+				// \s is can be any type of space character including tabulator. But most usually it is space. At least in subtitles.
+				let fragments = s.split(/\s/);
+				//console.log(fragments.length);
+
+				let nFragmentsToDelete;
+
+				if (fragments.length <= 1) {
+					nFragmentsToDelete = 0;
+				}
+				else if (fragments.length > 4) {
+					nFragmentsToDelete = 2;
+				}
+				else {
+					nFragmentsToDelete = 1;
+				}
+
+				for (let i = 0; i < fragments.length; i++) {
+					//console.log( fragments[i] );
+
+					// Keep fragments after deleted fragments
+					if (i >= nFragmentsToDelete) {
+						if (transformed) {
+							transformed = transformed + " " + fragments[i];
+						}
+						else {
+							transformed = fragments[i];
+						}
+					}
+
+					// Delete words/fragments in the beginning
+					else {
+						// But check for common non-letter characters, like punctuation, we do not want to hide them
+						let specialCharacters = [...specialChars.generalChars, ...specialChars.arabicChars];
+
+						let re = new RegExp("[" + specialCharacters.join("") + "]");           // create matching regexp for detecting special chars like: /[-♪()]/
+						let re2 = new RegExp("([^" + specialCharacters.join("") + "]+)", "g"); // create negative global regexp for replacing non-special chars like: /([^-♪()]+)/g
+
+						//console.log({re, re2});
+
+						if (fragments[i].match(re)) { // found special character
+							let replaced = fragments[i].replace(re2, "<del>$1</del>"); // keep special characters, others must be put inside <del> tags
+							// Replace abc,def => <del>abc</del>,<del>def</del>
+							if (transformed) {
+								transformed = transformed + " " + replaced;
+							}
+							else {
+								transformed = replaced;
+							}
+						}
+						// no special characters, just wrap fragment inside <del> tags
+						else {
+							if (fragments[i] === "") { // Without this check will string terminating on space like "I read " genereate an additional " _ " at the end during filtering, issue #12, #13
+								if (transformed) {
+									transformed = transformed + " ";
+								}
+							}
+							else {
+								if (transformed) {
+									transformed = transformed + " " + "<del>"+ fragments[i] + "</del>";
+								}
+								else {
+									transformed = "<del>"+ fragments[i] + "</del>";
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return transformed;
+		}
 
 		// Very simple filter that should work on most of Chinese and Japanese texts
 		// I do not know Chinese nor Japanese, hope I find someone who knows it and will help me improve this filter
