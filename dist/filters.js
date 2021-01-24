@@ -65,7 +65,8 @@ subfilter.createFilterSelector = function (parent, options, includeHiddenFilters
 
 // s contains multiline vtt cue text
 // process each line individually
-subfilter.filterMultiLine = function(s) {
+// cue is reference to active cue object
+subfilter.filterMultiLine = function(s, cue) {
     const lines = s.split('\n');
     const newLines = [];
     for (const line of lines) {
@@ -73,6 +74,7 @@ subfilter.filterMultiLine = function(s) {
       transformed = subfilter.filters.render(transformed);
       // console.log({li: line, lo: transformed});
       newLines.push(transformed);
+      subfilter.stats.rememberLine(line, cue);
     }
 
     return newLines.join('\n');	
@@ -93,6 +95,109 @@ subfilter.filterMultiLinePlainAscii = function(s) {
 
     return newLines.join('\n');
 }
+
+
+//////////////////////////////////////////////
+// Debug commands to be run from js console.
+// e.g. subfilter.cmds.dump()
+//
+subfilter.cmds = function() {
+
+	function getCuesReference() {
+		let trackEl = document.getElementById("subadub-track");
+		if (!trackEl) { console.log("Error. Track element not found."); return null; }
+
+		let track = trackEl.track;
+		if (!track) { console.log("Error. Track properties not found."); return null; }
+
+		let cues = track.cues;
+		if (!cues) { console.log("Error, Cues not found."); return null; }
+
+		return cues;
+	}
+
+	// Show current commands
+	function help() {
+		console.info("Available commands:", "help, dump, dumpSession, grep, grepSession");
+	}
+
+	// Dump all cues from current subtitles track
+	function dump() {
+		let cues = getCuesReference();
+
+		if (cues) {
+			for (let cue of cues) {
+				console.info(cue.id, cue.startTime, cue.endTime, cue.text);
+			}
+		}
+	}
+
+	// Like dump() but only for subtitles that were displayed during current session
+	function dumpSession() {
+		for (let line of subfilter.stats.getSavedLines()) {
+			console.info(line.id, line.startTime, line.endTime, line.displayText);
+		}
+	}
+
+	// Search in all cues in current subtitle track for a given string
+	function grep(s) {
+		let cues = getCuesReference();
+
+		if (cues) {
+			for (let cue of cues) {
+				if (cue.text.match(s)) {
+					console.info(cue.id, cue.startTime, cue.endTime, cue.text);
+				}
+			}
+		}
+	}
+
+	// Like grep() but search only inside cues that were displayed during current session
+	function grepSession(s) {
+		return subfilter.stats.grepSavedLines(s);
+	}
+
+	return { help, dump, dumpSession, grep, grepSession };
+}();
+
+
+/////////////////////////////////////////////////////
+// Storage for seen subtitles during one session
+//
+subfilter.stats = function() {
+	let savedLines = [];
+
+	// Save cue line into session storage
+	function rememberLine(s, cue) {
+		//console.log(cue);
+		let id = 0, startTime = 0, endTime = 0, text = "";
+
+		if (cue && cue.id && cue.startTime && cue.endTime && cue.text) {
+			id        = cue.id;
+			startTime = cue.startTime;
+			endTime   = cue.endTime;
+			text      = cue.text
+		}
+		savedLines.push({ id: id, startTime: startTime, endTime: endTime, text: text, displayText: s});
+	}
+
+	// Search inside session saved lines
+	function grepSavedLines(s) {
+		for (let line of savedLines) {
+			if (line.displayText.match(s)) {
+				console.info(line.id, line.startTime, line.endTime, line.displayText);
+			}
+		}
+	}
+
+	// Get all Saved lines from current session
+	function getSavedLines() {
+		return [ ...savedLines ];
+	}
+
+	return { rememberLine, getSavedLines, grepSavedLines };
+}();
+
 
 //////////////////////////////////////////////////////
 // Manager for selecting/runing filters
@@ -145,7 +250,7 @@ subfilter.filters = function() {
 
 		// get list of avalilable filters
 		function list() {
-			return listing;
+			return { ...listing };
 		}
 
 		// register custom filter

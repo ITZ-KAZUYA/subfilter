@@ -368,7 +368,8 @@ scriptElem.text = `
           cueElem.style.cssText = 'background: rgba(0,0,0,0.8); white-space: pre-wrap; padding: 0.2em 0.3em; margin: 10px auto; width: fit-content; width: -moz-fit-content; pointer-events: auto';
 
           let simpleText = vttTextToSimple(cue.text, true); // may contain simple tags like <i> etc.
-          if (subfilter && subfilter.filterMultiLine) { simpleText = subfilter.filterMultiLine(simpleText) } // for language practice make some parts of subtitles not visible
+          cueElem.title = simpleText;
+          if (subfilter && subfilter.filterMultiLine) { simpleText = subfilter.filterMultiLine(simpleText, cue) } // for language practice make some parts of subtitles invisible
           cueElem.innerHTML = simpleText;
           customSubsElem.appendChild(cueElem);
         }
@@ -515,7 +516,7 @@ scriptElem.text = `
       const subsElem = document.getElementById(CUSTOM_SUBS_ELEM_ID);
       if (subsElem) {
         const pieces = [];
-        for (child of [...subsElem.children]) {
+        for (let child of [...subsElem.children]) {
           pieces.push(child.textContent); // copy as plain text
         }
         const text = pieces.join('\\n');
@@ -558,7 +559,7 @@ scriptElem.text = `
     if (hideSubsListTimeout) {
       clearTimeout(hideSubsListTimeout);
     }
-    hideSubsListTimeout = setTimeout(hideSubsListTimerFunc, 3000);
+    hideSubsListTimeout = setTimeout(hideSubsListTimerFunc, 8000);
   }, false);
 })();
 `;
