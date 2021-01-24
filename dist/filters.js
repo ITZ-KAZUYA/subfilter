@@ -170,19 +170,32 @@ subfilter.cmds = function() {
 
 			wordStats = subfilter.stats.wordStats(movieLines);
 
+			let words = [];
+
 			for (let word of wordStats) {
 				console.info(word[0], word[1]);
+				words.push(word[0]);
 			}
+
+			words.sort();
+			console.info("Words:", words.length);
+			console.info(words.join(" "));
 		}
 	}
 
 	// Dump word statistic from curren session
 	function wordsSession() {
+		let words = [];
 
 		let wordStats = subfilter.stats.wordStats();
 		for (let word of wordStats) {
 			console.info(word[0], word[1]);
+			words.push(word[0]);
 		}
+
+		words.sort();
+		console.info("Words:", words.length);
+		console.info(words.join(" "));
 	}
 
 	return { help, dump, dumpSession, grep, grepSession, words, wordsSession };
