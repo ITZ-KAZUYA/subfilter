@@ -567,11 +567,14 @@ document.head.insertBefore(scriptElem, document.head.firstChild);
 
 const scriptElem2 = document.createElement('script');
 scriptElem2.src = chrome.extension.getURL('filters.js');
-document.head.insertBefore(scriptElem2, document.head.firstChild);
+document.head.appendChild(scriptElem2);
 
+
+setTimeout(function() {
 const scriptElem3 = document.createElement('script');
 scriptElem3.src = chrome.extension.getURL('custom_filters.js');
-document.head.insertBefore(scriptElem3, document.head.firstChild);
+document.head.appendChild(scriptElem3);
+}, 10);
 
 if (chrome && chrome.runtime && chrome.runtime.getManifest) {
   console.log(chrome.runtime.getManifest().name, chrome.runtime.getManifest().version);

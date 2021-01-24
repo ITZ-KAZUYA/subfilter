@@ -118,7 +118,7 @@ subfilter.cmds = function() {
 
 	// Show current commands
 	function help() {
-		console.info("Available commands:", "help, dump, dumpSession, grep, grepSession");
+		console.info("Available commands:", "help, dump, dumpSession, grep, grepSession, words, wordsSession");
 	}
 
 	// Dump all cues from current subtitles track
