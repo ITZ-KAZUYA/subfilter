@@ -157,7 +157,35 @@ subfilter.cmds = function() {
 		return subfilter.stats.grepSavedLines(s);
 	}
 
-	return { help, dump, dumpSession, grep, grepSession };
+	// Dump words statistics from current movie
+	function words() {
+		let cues = getCuesReference();
+		let movieLines = [];
+		let wordStats;
+
+		if (cues) {
+			for (let cue of cues) {
+				movieLines.push({ id: cue.id, startTime: cue.startTime, endTime: cue.endTime, text: cue.text});
+			}
+
+			wordStats = subfilter.stats.wordStats(movieLines);
+
+			for (let word of wordStats) {
+				console.info(word[0], word[1]);
+			}
+		}
+	}
+
+	// Dump word statistic from curren session
+	function wordsSession() {
+
+		let wordStats = subfilter.stats.wordStats();
+		for (let word of wordStats) {
+			console.info(word[0], word[1]);
+		}
+	}
+
+	return { help, dump, dumpSession, grep, grepSession, words, wordsSession };
 }();
 
 
@@ -181,6 +209,10 @@ subfilter.stats = function() {
 		savedLines.push({ id: id, startTime: startTime, endTime: endTime, text: text, displayText: s});
 	}
 
+	function reset() {
+		savedLines = [];
+	}
+
 	// Search inside session saved lines
 	function grepSavedLines(s) {
 		for (let line of savedLines) {
@@ -195,7 +227,74 @@ subfilter.stats = function() {
 		return [ ...savedLines ];
 	}
 
-	return { rememberLine, getSavedLines, grepSavedLines };
+	// Generate statistics of words
+	// Is very simple now. Could we separate different languages into different sets?
+	// When called without argument will use saved words from current session
+	// Otherwise expecting list of cues in an argument
+	function wordStats(lines) {
+		let words = {};
+
+		if (!lines) {
+			lines = savedLines;
+		}
+
+		for (let item of lines) {
+			let line;
+
+			// Use .displayText or .text
+			if (item.displayText) {
+				line = item.displayText.toLowerCase();
+			 }
+			 else {
+			 	line = item.text.toLowerCase();
+			 }
+
+			//console.log(line);
+
+			// remove all <tags>
+			line = line.replace(/<[^<>]+>/g, "");
+
+			// remove all [ bracets content ]
+			line = line.replace(/\[[^\]]+\]/g, "");
+
+			// remove punctuation and common special characters
+			// TODO use set of special char that we already have for filters, do not duplicate them here
+			line = line.replace(/[-♪(),"“”:;.?!¡¿…（）！？：，、\u061f\u060c]/g, "");
+
+			// after all replacing there could be some surrounding spaces, trim them
+			line = line.trim();
+
+			if (line == "") { continue; } // is there anything left?
+
+			//console.log(line);
+
+			let fragments = line.split(/\s+/);
+
+			for (let fragment of fragments) {
+
+				if (fragment == "") { continue; }
+
+				if (!(fragment in words)) {
+					words[fragment] = 0;
+				}
+
+				words[fragment]++;
+			}
+		}
+
+		// To sort we need to create list first, then sort it
+		let wordsArray = [];
+
+		for (let item in words) {
+			wordsArray.push([item, words[item]]);
+		}
+
+		wordsArray.sort(function(a,b) { return b[1] - a[1]; });
+
+		return wordsArray;
+	}
+
+	return { rememberLine, getSavedLines, grepSavedLines, wordStats, reset };
 }();
 
 
