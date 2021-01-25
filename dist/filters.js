@@ -272,7 +272,7 @@ subfilter.stats = function() {
 
 			// remove punctuation and common special characters
 			// TODO use set of special char that we already have for filters, do not duplicate them here
-			line = line.replace(/[-♪(),"“”„:;.?!¡¿…（）！？：，、\u061f\u060c]/g, "");
+			line = line.replace(/[-–♪(),"“”„:;.?!¡¿…（）！？：，、\u061f\u060c]/g, "");
 
 			// after all replacing there could be some surrounding spaces, trim them
 			line = line.trim();
@@ -427,7 +427,7 @@ subfilter.filters = function() {
 			// Common non-letter characters, like punctuation
 			// Do not include apostrophe, because this looks disturbing _'_ _ and apostrophe is often in English subtitles
 			// "dash" must be in the first array field, to correctly form the RegExp bracket expression otherwise will be confused with a range operator
-			generalChars: ["-", "♪", "(", ")", ",", "\"", "“", "”", "„", ":", ";", ".", "?", "!", "¡", "¿", "…‬"],
+			generalChars: ["-", "–", "♪", "(", ")", ",", "\"", "“", "”", "„", ":", ";", ".", "?", "!", "¡", "¿", "…‬"],
 
 			// FullWidthCharacters commonly used in some Asian environment (eg. Chinese)
 			// May look similar like characters used in Europe, but are different
