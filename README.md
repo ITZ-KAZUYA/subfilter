@@ -8,7 +8,7 @@ There are several subtitle filters, some easier, others more difficult. You can 
 
 ![Screenshot of Subfilter User Interface](https://github.com/met/subfilter/raw/master/img/subfilter-ui-small.png)
 
-## Installation (for <a href="https://chrome.google.com/webstore/detail/subfilter-for-netflix/knglefkdmonaaodmfkipllpnjhoaelmn">Chrome</a>/<a hrref="https://addons.mozilla.org/cs/firefox/addon/subfilter/">Firefox</a>)
+## Installation (for <a href="https://chrome.google.com/webstore/detail/subfilter-for-netflix/knglefkdmonaaodmfkipllpnjhoaelmn">Chrome</a>/<a href="https://addons.mozilla.org/cs/firefox/addon/subfilter/">Firefox</a>)
 
 <a href="https://chrome.google.com/webstore/detail/subfilter-for-netflix/knglefkdmonaaodmfkipllpnjhoaelmn"><img src="https://user-images.githubusercontent.com/59498/105509797-2e9d2100-5cce-11eb-8f9c-937d3a0c4f44.png" alt="Install Subfilter for Google Chrome" title="Install Subfilter for Firefox"></a>  <a href="https://addons.mozilla.org/cs/firefox/addon/subfilter/"><img src="https://user-images.githubusercontent.com/59498/105511058-c3ece500-5ccf-11eb-9468-d33eb49e05ab.png" alt="Install Subfilter for Firefox" title="Install Subfilter for Firefox"></a>
 
