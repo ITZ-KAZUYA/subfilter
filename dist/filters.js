@@ -242,6 +242,7 @@ subfilter.stats = function() {
 
 	// Generate statistics of words
 	// Is very simple now. Could we separate different languages into different sets?
+	//
 	// When called without argument will use saved words from current session
 	// Otherwise expecting list of cues in an argument
 	function wordStats(lines) {
@@ -274,18 +275,24 @@ subfilter.stats = function() {
 			// TODO use set of special char that we already have for filters, do not duplicate them here
 			line = line.replace(/[-–♪(),"“”„:;.?!¡¿…（）！？：，、\u061f\u060c]/g, "");
 
-			// after all replacing there could be some surrounding spaces, trim them
+			// after all that replacing there could be some surrounding spaces, trim them
 			line = line.trim();
 
 			if (line == "") { continue; } // is there anything left?
 
 			//console.log(line);
 
+			// cycle all words in a given cue
 			let fragments = line.split(/\s+/);
 
 			for (let fragment of fragments) {
 
 				if (fragment == "") { continue; }
+
+				// if fragment is a word in apostrophes, remove apostrophes; 'word' => word
+				if (fragment.match(/^'.*'$/)) {
+					fragment = fragment.replace(/^'/, "").replace(/'$/, "");
+				}
 
 				if (!(fragment in words)) {
 					words[fragment] = 0;
