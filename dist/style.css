@@ -1,0 +1,11 @@
+#subadub-custom-subs     { }
+#subadub-custom-subs div { }
+
+/* TODO make style changeable via settings */
+#subadub-custom-subs span.subfilter-hide-wrap { border-bottom: solid 2px gray; }
+
+
+#subadub-custom-subs span.subfilter-hide                      { visibility: hidden; }
+
+#subadub-custom-subs:hover span.subfilter-hide,
+#subadub-custom-subs.subfilter-force-show span.subfilter-hide { visibility: visible; color: gray; }

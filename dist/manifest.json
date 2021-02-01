@@ -16,6 +16,6 @@
     }
   ],
   "web_accessible_resources": [
-    "filters.js", "custom_filters.js"
+    "filters.js", "custom_filters.js", "subfilter-ui.js", "style.css"
   ]
  }

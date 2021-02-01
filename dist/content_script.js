@@ -368,7 +368,6 @@ scriptElem.text = `
           cueElem.style.cssText = 'background: rgba(0,0,0,0.8); white-space: pre-wrap; padding: 0.2em 0.3em; margin: 10px auto; width: fit-content; width: -moz-fit-content; pointer-events: auto';
 
           let simpleText = vttTextToSimple(cue.text, true); // may contain simple tags like <i> etc.
-          cueElem.title = simpleText;
           if (subfilter && subfilter.filterMultiLine) { simpleText = subfilter.filterMultiLine(simpleText, cue) } // for language practice make some parts of subtitles invisible
           cueElem.innerHTML = simpleText;
           customSubsElem.appendChild(cueElem);
@@ -565,6 +564,12 @@ scriptElem.text = `
 `;
 document.head.insertBefore(scriptElem, document.head.firstChild);
 
+const styleElem2 = document.createElement('link');
+styleElem2.rel   = 'stylesheet';
+styleElem2.type  = 'text/css';
+styleElem2.href  = chrome.extension.getURL('style.css');
+document.head.appendChild(styleElem2);
+
 const scriptElem2 = document.createElement('script');
 scriptElem2.src = chrome.extension.getURL('filters.js');
 document.head.appendChild(scriptElem2);
@@ -574,7 +579,12 @@ setTimeout(function() {
 const scriptElem3 = document.createElement('script');
 scriptElem3.src = chrome.extension.getURL('custom_filters.js');
 document.head.appendChild(scriptElem3);
+
+const scriptElem4 = document.createElement('script');
+scriptElem4.src = chrome.extension.getURL('subfilter-ui.js');
+document.head.appendChild(scriptElem4);
 }, 10);
+
 
 if (chrome && chrome.runtime && chrome.runtime.getManifest) {
   console.log(chrome.runtime.getManifest().name, chrome.runtime.getManifest().version);

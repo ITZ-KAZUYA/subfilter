@@ -387,9 +387,8 @@ subfilter.filters = function() {
 
 		// Render for HTML output.
 		// Exchange <del> mark-word </del> for double span actually hiding mark words
-		// TODO do not use "style" attribute, use "class" and make style changeable in settings
 		function render(s) {
-			let s1 = s.replace(/<del>/g, "<span style=\"border-bottom:solid 2px gray;\"><span style=\"visibility:hidden\">");
+			let s1 = s.replace(/<del>/g, "<span class=\"subfilter-hide-wrap\"><span class=\"subfilter-hide\">");
 			let s2 = s1.replace(/<\/del>/g, "</span></span>");
 
 			return s2;
