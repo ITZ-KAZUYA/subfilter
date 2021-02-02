@@ -111,7 +111,7 @@ subfilter.cmds = function() {
 		if (!track) { console.log("Error. Track properties not found."); return null; }
 
 		let cues = track.cues;
-		if (!cues) { console.log("Error, Cues not found."); return null; }
+		if (!cues) { console.log("Error. Cues not found."); return null; }
 
 		return cues;
 	}
@@ -315,6 +315,48 @@ subfilter.stats = function() {
 	}
 
 	return { rememberLine, getSavedLines, grepSavedLines, wordStats, reset };
+}();
+
+
+//////////////////////////////////////////////////////
+// Managing user reviews
+//
+subfilter.review = function() {
+	// TODO this is storage for prototyping, need to remember items permanently, inside this extension, not in Netflix page scope
+	let savedItems = [];
+
+
+	function getActiveCue() {
+		let trackEl = document.getElementById("subadub-track");
+		if (!trackEl) { console.log("Error. Track element not found."); return null; }
+
+		let track = trackEl.track;
+		if (!track) { console.log("Error. Track properties not found."); return null; }
+
+		let cues = track.activeCues;
+		if (!cues) { console.log("Error. Active Cues not found."); return null; }
+
+		if (!cues[0] || !cues[0].text ) { console.log("Error. Active Cue text not found."); return null; }
+
+		let text = cues[0].text;
+
+		return text;
+	}
+
+
+	// Save current subtitle item for user to review later
+	// TODO save also position inside movie, movie name and current time
+	function saveCurrentItem() {
+		let text = getActiveCue();
+
+		savedItems.push(text);
+	}
+
+	function getAll() {
+		return [...savedItems];
+	}
+
+	return { saveCurrentItem, getAll };
 }();
 
 
