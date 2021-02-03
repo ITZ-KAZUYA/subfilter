@@ -315,7 +315,10 @@ scriptElem.text = `
       panelElem.appendChild(selectElem);
       panelElem.appendChild(downloadButtonElem);
 
-      if (subfilter && subfilter.createFilterSelector) { subfilter.createFilterSelector(panelElem, {"style": "color: black; margin: 5px", "aria-label": "Select filter"}); }
+      if (subfilter && subfilter.createFilterSelector) {
+        subfilter.createFilterSelector(panelElem, {"style": "color: black; margin: 5px", "aria-label": "Select filter"});
+        subfilter.playingmodes.createModeSelector(panelElem, {"style": "color: black; margin: 5px", "aria-label": "Select playing mode"});
+      }
 
       const containerElem = document.createElement('div');
       containerElem.id = SUBS_LIST_ELEM_ID;
@@ -355,6 +358,8 @@ scriptElem.text = `
       customSubsElem.id = CUSTOM_SUBS_ELEM_ID;
       customSubsElem.style.cssText = 'position: absolute; bottom: 20vh; left: 0; right: 0; color: white; font-size: 3vw; text-align: center; user-select: text; -moz-user-select: text; z-index: 100; pointer-events: none';
 
+      subfilter.ui.makeCueChangeListener(trackElem, customSubsElem, vttTextToSimple);
+      /*
       trackElem.addEventListener('cuechange', function(e) {
         // Remove all children
         while (customSubsElem.firstChild) {
@@ -373,6 +378,7 @@ scriptElem.text = `
           customSubsElem.appendChild(cueElem);
         }
       }, false);
+      */
 
       // Appending this to the player rather than the document fixes some issues:
       // 1) Clicking on subtitle text doesn't take focus (keyboard events) away from player
