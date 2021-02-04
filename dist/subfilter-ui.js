@@ -76,22 +76,19 @@ subfilter.ui.getNetflixPlayer = function() {
 		  .getVideoPlayerBySessionId(playerSessionId)
 	*/
 
-
-	let videoPlayer;
-	let playerSessionId;
 	let player;
 
 	if (netflix && netflix.appContext && netflix.appContext.state && netflix.appContext.state.playerApp && netflix.appContext.state.playerApp.getAPI) {
 		let netflixAPI = netflix.appContext.state.playerApp.getAPI();
 
 		if (netflixAPI && netflixAPI.videoPlayer) {
-			videoPlayer = netflixAPI.videoPlayer;
+			let videoPlayer = netflixAPI.videoPlayer;
 
 			if (videoPlayer && videoPlayer.getAllPlayerSessionIds) {
 				let sessionIds = videoPlayer.getAllPlayerSessionIds();
 
 				if (sessionIds && sessionIds[0]) {
-					playerSessionId = sessionIds[0];
+					let playerSessionId = sessionIds[0];
 
 					if (playerSessionId && videoPlayer.getVideoPlayerBySessionId) {
 
@@ -101,7 +98,6 @@ subfilter.ui.getNetflixPlayer = function() {
 			}
 		}
 	}
-
 	return player;
 }
 
@@ -120,7 +116,7 @@ subfilter.ui.repeatLastSubtitle = function() {
 
 				if (player) {
 					// subtitle time is in seconds, Netflix uses miliseconds;
-					// -1 is time just before cue appears to ensure that videoPlayListenerForCleaning is called before subtitle raises cuechange event
+					// -1 is time just before cue appears to ensure that VideoPlayListenerForCleaning is called before subtitle raises cuechange event
 					player.seek(startTime*1000-1);
 					player.play();
 				}
@@ -142,26 +138,33 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 	let subfilterLastClearTimeoutID = 0;
 
 
-	function videoPlayListenerForCleaning(event) {
-		//console.log("videoPlayListenerForCleaning", event);
+	function VideoPlayListenerForCleaning(event) {
+		//console.log("VideoPlayListenerForCleaning", event);
 
 		let videoEl = document.querySelector("video");
-		if (videoEl) { videoEl.removeEventListener("play", videoPlayListenerForCleaning, false); }
+		if (videoEl) { videoEl.removeEventListener("play", VideoPlayListenerForCleaning, false); } // deregister handler, should be called only once
 
-		// Remove all children
+		EmptySubtitleArea();
+	}
+
+	function EmptySubtitleArea() {
+		// Clear subtitle area - remove all children
 		while (customSubsElem && customSubsElem.firstChild) {
 			customSubsElem.removeChild(customSubsElem.firstChild);
 		}
+	}
+
+	// Clear subtitle and reset timeout handler ID
+	function ClearCue() {
+		EmptySubtitleArea();
+		subfilterLastClearTimeoutID = 0;
 	}
 
 	function ChangeCue(customSubsElem, track, cuesToDisplay) {
 		//console.log("OnCueChangeHandler", customSubsElem, track, cuesToDisplay);
 		//console.log("cuesToDisplay", cuesToDisplay);
 
-		// Remove all children
-		while (customSubsElem.firstChild) {
-			customSubsElem.removeChild(customSubsElem.firstChild);
-		}
+		EmptySubtitleArea();
 
 		// console.log('active now', track.activeCues);
 		for (const cue of cuesToDisplay) {
@@ -180,16 +183,6 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		}
 
 		subfilterLastNewTextTimeoutID = 0;
-	}
-
-	function ClearCue(customSubsElem) {
-
-		// Remove all children
-		while (customSubsElem.firstChild) {
-			customSubsElem.removeChild(customSubsElem.firstChild);
-		}
-
-		subfilterLastClearTimeoutID = 0;
 	}
 
 	trackElem.addEventListener("cuechange", function(event) {
@@ -220,7 +213,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			console.error("Error. Unknown playing mode.", subfilter.playingmodes.selected);
 		}
 
-		// Showing new cue
+		// New cue to show
 		if (cuesToDisplay.length > 0) {
 
 			if (subfilterLastNewTextTimeoutID) {
@@ -245,7 +238,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterLastNewTextTimeoutID = setTimeout(ChangeCue, subfilterStartDelay, customSubsElem, event.target.track, cuesToDisplay);
 
 		}
-		// Hiding old cue
+		// Old cue to hide
 		else {
 			if (subfilterRevealAtEnd) {
 
@@ -259,19 +252,28 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 				console.log("Error. Creating another Clear Text TimetOut when there is still older one.");
 			}
 
+			// Should we pause video?
 			if (subfilterPauseOnEnd) {
-				let player = subfilter.ui.getNetflixPlayer();
-				if (player) {
-					player.pause();
 
-					let videoEl = document.querySelector("video");
-					if (videoEl) { videoEl.addEventListener("play", videoPlayListenerForCleaning, false); } // need to hide cue when video start playing again
+				// Check if there is some hidden fragment in the current subtitle,
+				// pause video only if there is any
+				let hiddenFragments = document.querySelectorAll(".subfilter-hide");
+				if (hiddenFragments && hiddenFragments.length > 0) {
+
+					let player = subfilter.ui.getNetflixPlayer();
+					if (player) {
+						player.pause();
+
+						let videoEl = document.querySelector("video");
+						if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); } // need to hide cue when video start playing again
+					}
+					return;
+
 				}
-				return;
 			}
 
 			// Calling display Cue now or delayed
-			subfilterLastClearTimeoutID = setTimeout(ClearCue, subfilterEndDelay, customSubsElem);
+			subfilterLastClearTimeoutID = setTimeout(ClearCue, subfilterEndDelay);
 		}
 
 	}, false);
@@ -296,7 +298,7 @@ subfilter.playingmodes.createModeSelector = function(parent, options) {
 
 	let modes = {
 		"normal": { name: "Normal playing mode", description: "Play without interruption for comfortable watching." },
-		"stopafterandreveal": { name: "Stop and reveal", description: "After every subtitle is video stoped and hidden text is revealed." }
+		"stopafterandreveal": { name: "Stop and reveal", description: "After every subtitle is video stoped and hidden text is revealed.\nPress 'B' to repeat last subtitle." }
 	};
 
 	let defaultMode = "normal";
