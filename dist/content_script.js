@@ -317,7 +317,7 @@ scriptElem.text = `
 
       if (subfilter && subfilter.createFilterSelector) {
         subfilter.createFilterSelector(panelElem, {"style": "color: black; margin: 5px", "aria-label": "Select filter"});
-        subfilter.playingmodes.createModeSelector(panelElem, {"style": "color: black; margin: 5px", "aria-label": "Select playing mode"});
+        subfilter.watchingmodes.createModeSelector(panelElem, {"style": "color: black; margin: 5px", "aria-label": "Select playing mode"});
       }
 
       const containerElem = document.createElement('div');

@@ -226,7 +226,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		}
 
 		// Handle playing modes
-		if (subfilter.playingmodes.selected == "normal") {
+		if (subfilter.watchingmodes.selected == "normal") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
 			subfilterAutoContinueDelay = 0;
@@ -235,7 +235,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterRevealAtEnd = false;
 			subfilterSkipToNextText = false;
 		}
-		else if (subfilter.playingmodes.selected == "pausebefore") {
+		else if (subfilter.watchingmodes.selected == "pausebefore") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
 			subfilterAutoContinueDelay = 0;
@@ -244,7 +244,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterRevealAtEnd = false;
 			subfilterSkipToNextText = false;
 		}
-		else if (subfilter.playingmodes.selected == "pauseafterandreveal") {
+		else if (subfilter.watchingmodes.selected == "pauseafterandreveal") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
 			subfilterAutoContinueDelay = 0;
@@ -253,7 +253,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterRevealAtEnd = true;
 			subfilterSkipToNextText = false;
 		}
-		else if (subfilter.playingmodes.selected == "pauseafterrevealcontinue") {
+		else if (subfilter.watchingmodes.selected == "pauseafterrevealcontinue") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
 			subfilterAutoContinueDelay = 1500;
@@ -262,7 +262,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterRevealAtEnd = true;
 			subfilterSkipToNextText = false;
 		}
-		else if (subfilter.playingmodes.selected == "onlydialogs") {
+		else if (subfilter.watchingmodes.selected == "onlydialogs") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
 			subfilterAutoContinueDelay = 0;
@@ -272,7 +272,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterSkipToNextText = true;
 		}
 		else {
-			console.error("Error. Unknown playing mode.", subfilter.playingmodes.selected);
+			console.error("Error. Unknown playing mode.", subfilter.watchingmodes.selected);
 		}
 
 		// New cue to show
@@ -384,14 +384,14 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 }
 
 
-subfilter.playingmodes = {};
+subfilter.watchingmodes = {};
 
 // Create select element and insert it inside "parent" element
 // "option" is object with attributes of "select" element  e.g. {"id": "filters", "class": "form-select mb-3" }
-subfilter.playingmodes.createModeSelector = function(parent, options) {
+subfilter.watchingmodes.createModeSelector = function(parent, options) {
 
 	const selectElem = document.createElement("select");
-	selectElem.title = "Select playing mode";
+	selectElem.title = "Select watching mode";
 
 	if (options) {
 		for (const item in options) {
@@ -400,7 +400,7 @@ subfilter.playingmodes.createModeSelector = function(parent, options) {
 	}
 
 	let modes = {
-		"normal": { name: "Normal playing mode", description: " Play without interruption for comfortable watching." },
+		"normal": { name: "Normal watching mode", description: " Play without interruption for comfortable watching." },
 		"pausebefore": { name: "Pause (before)", description: " Before every subtitle is video paused.\n Press 'Space' to continue watching." },
 		"pauseafterandreveal": { name: "Pause and reveal (after)", description: " After every subtitle is video paused and hidden text is revealed.\n Press 'B' to repeat last subtitle.\n Press 'Space' to continue watching." },
 		"pauseafterrevealcontinue": { name: "Pause, reveal, continue", description: " Before every subtitle is video paused, hidden text is revealed and video continue automatically.\n Press 'B' to repeat last subtitle." },
@@ -420,10 +420,10 @@ subfilter.playingmodes.createModeSelector = function(parent, options) {
 	selectElem.value = defaultMode;
 	// TODO make last selected mode persist between sessions and handle if the saved value is incorrect or deleted
 
-	subfilter.playingmodes.selected = defaultMode;
+	subfilter.watchingmodes.selected = defaultMode;
 
 	selectElem.addEventListener("change", function(e) {
-		subfilter.playingmodes.selected = e.target.value;
+		subfilter.watchingmodes.selected = e.target.value;
 
 		//localStorage.setItem(subfilter.storageLastFilterKey, e.target.value);
 	}, false);
