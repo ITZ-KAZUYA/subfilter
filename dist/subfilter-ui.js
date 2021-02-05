@@ -136,6 +136,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 	let subfilterPauseOnStart = false;
 	let subfilterPauseOnEnd = false;
 	let subfilterRevealAtEnd = false;
+	let subfilterSkipToNextText = false;
 
 	let subfilterLastNewTextTimeoutID = 0;
 	let subfilterLastClearTimeoutID = 0;
@@ -188,11 +189,36 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		subfilterLastNewTextTimeoutID = 0;
 	}
 
+	function SeekToNextCue(track, lastCues) {
+		//console.log("SeekToNextCue");
+
+		if (track && lastCues && lastCues[0] && lastCues[0].id) {
+
+			let currentCueId = lastCues[0].id;
+			currentCueId = Number(currentCueId); // cue is a number formated as string, convert to number and check if conversion succeeded
+
+			if (currentCueId && track.cues) {
+				let nextCue = track.cues[currentCueId];
+
+				if (nextCue && nextCue.startTime && typeof(nextCue.startTime) === "number" && nextCue.startTime > 0) {
+
+					let seekTo = nextCue.startTime;
+
+					//console.log("SeekToNextCue", seekTo);
+
+					let player = subfilter.ui.getNetflixPlayer();
+					if (player) {
+						player.seek(seekTo*1000);
+					}
+				}
+			}
+		}
+	}
+
 	trackElem.addEventListener("cuechange", function(event) {
 		//console.log(event);
 
 		const track = event.target.track;
-
 		let cuesToDisplay = [];
 
 		for (const cue of track.activeCues) {
@@ -207,6 +233,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = false;
 			subfilterRevealAtEnd = false;
+			subfilterSkipToNextText = false;
 		}
 		else if (subfilter.playingmodes.selected == "pausebefore") {
 			subfilterStartDelay = 0;
@@ -215,6 +242,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterPauseOnStart = true;
 			subfilterPauseOnEnd = false;
 			subfilterRevealAtEnd = false;
+			subfilterSkipToNextText = false;
 		}
 		else if (subfilter.playingmodes.selected == "pauseafterandreveal") {
 			subfilterStartDelay = 0;
@@ -223,6 +251,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = true;
 			subfilterRevealAtEnd = true;
+			subfilterSkipToNextText = false;
 		}
 		else if (subfilter.playingmodes.selected == "pauseafterrevealcontinue") {
 			subfilterStartDelay = 0;
@@ -231,6 +260,16 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = true;
 			subfilterRevealAtEnd = true;
+			subfilterSkipToNextText = false;
+		}
+		else if (subfilter.playingmodes.selected == "onlydialogs") {
+			subfilterStartDelay = 0;
+			subfilterEndDelay = 0;
+			subfilterAutoContinueDelay = 0;
+			subfilterPauseOnStart = false;
+			subfilterPauseOnEnd = false;
+			subfilterRevealAtEnd = false;
+			subfilterSkipToNextText = true;
 		}
 		else {
 			console.error("Error. Unknown playing mode.", subfilter.playingmodes.selected);
@@ -308,7 +347,35 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 				}
 			}
 
-			// Calling display Cue now or delayed
+			// Should we seek to the next subtitle?
+			if (subfilterSkipToNextText) {
+
+				// Check what actual position is, and if corresponds to the position of last cue.
+				// Make SeekToNextCue only if it corresponds.
+				// Otherwise, user probably seeked video manually to different position and we should not seek now
+				// (because we will return to the last subtitle before user's seeking)
+				let lastCues = subfilter.ui.lastCues;
+				if (lastCues && lastCues[0] && lastCues[0].endTime) {
+					let lastCueEndTime = lastCues[0].endTime;
+
+					let player = subfilter.ui.getNetflixPlayer();
+					if (player) {
+						let currentTime = player.getCurrentTime();
+						let timeDifferenceInMs = Math.abs(lastCueEndTime*1000 - currentTime);
+						//console.log("Time difference", timeDifferenceInMs);
+
+						// if current time differs more than 2 seconds from last subtitle time, user was probably seeking
+						// in that case continue playing normally
+						if (timeDifferenceInMs < 2000) {
+							ClearCue();
+							SeekToNextCue(track, subfilter.ui.lastCues);
+							return;
+						}
+					}
+				}
+			}
+
+			// Calling to clear Cue now or delayed
 			subfilterLastClearTimeoutID = setTimeout(ClearCue, subfilterEndDelay);
 		}
 
@@ -337,6 +404,7 @@ subfilter.playingmodes.createModeSelector = function(parent, options) {
 		"pausebefore": { name: "Pause (before)", description: " Before every subtitle is video paused.\n Press 'Space' to continue watching." },
 		"pauseafterandreveal": { name: "Pause and reveal (after)", description: " After every subtitle is video paused and hidden text is revealed.\n Press 'B' to repeat last subtitle.\n Press 'Space' to continue watching." },
 		"pauseafterrevealcontinue": { name: "Pause, reveal, continue", description: " Before every subtitle is video paused, hidden text is revealed and video continue automatically.\n Press 'B' to repeat last subtitle." },
+		"onlydialogs": { name: "Dialogs only", description: " Watch only dialogs, skip else.\n Press 'B' to repeat last subtitle." },
 	};
 
 	let defaultMode = "normal";
