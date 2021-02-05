@@ -131,6 +131,9 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 
 	let subfilterStartDelay = 0; // delay in miliseconds
 	let subfilterEndDelay = 0;   // delay in miliseconds
+	let subfilterAutoContinueDelay = 0;
+
+	let subfilterPauseOnStart = false;
 	let subfilterPauseOnEnd = false;
 	let subfilterRevealAtEnd = false;
 
@@ -200,12 +203,32 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		if (subfilter.playingmodes.selected == "normal") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
+			subfilterAutoContinueDelay = 0;
+			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = false;
 			subfilterRevealAtEnd = false;
 		}
-		else if (subfilter.playingmodes.selected == "stopafterandreveal") {
+		else if (subfilter.playingmodes.selected == "pausebefore") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
+			subfilterAutoContinueDelay = 0;
+			subfilterPauseOnStart = true;
+			subfilterPauseOnEnd = false;
+			subfilterRevealAtEnd = false;
+		}
+		else if (subfilter.playingmodes.selected == "pauseafterandreveal") {
+			subfilterStartDelay = 0;
+			subfilterEndDelay = 0;
+			subfilterAutoContinueDelay = 0;
+			subfilterPauseOnStart = false;
+			subfilterPauseOnEnd = true;
+			subfilterRevealAtEnd = true;
+		}
+		else if (subfilter.playingmodes.selected == "pauseafterrevealcontinue") {
+			subfilterStartDelay = 0;
+			subfilterEndDelay = 0;
+			subfilterAutoContinueDelay = 1500;
+			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = true;
 			subfilterRevealAtEnd = true;
 		}
@@ -237,6 +260,12 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			// Calling display Cue now or delayed
 			subfilterLastNewTextTimeoutID = setTimeout(ChangeCue, subfilterStartDelay, customSubsElem, event.target.track, cuesToDisplay);
 
+			if (subfilterPauseOnStart) {
+				let player = subfilter.ui.getNetflixPlayer();
+				if (player) {
+					player.pause();
+				}
+			}
 		}
 		// Old cue to hide
 		else {
@@ -264,11 +293,18 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 					if (player) {
 						player.pause();
 
+						// need to hide cue when video start playing again, because we do not hide it now
 						let videoEl = document.querySelector("video");
-						if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); } // need to hide cue when video start playing again
+						if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); }
+
+						// Should video continue automatically after some detal?
+						if (subfilterAutoContinueDelay > 0) {
+							setTimeout(function() {
+								player.play();
+							}, subfilterAutoContinueDelay);
+						}
 					}
 					return;
-
 				}
 			}
 
@@ -297,8 +333,10 @@ subfilter.playingmodes.createModeSelector = function(parent, options) {
 	}
 
 	let modes = {
-		"normal": { name: "Normal playing mode", description: "Play without interruption for comfortable watching." },
-		"stopafterandreveal": { name: "Stop and reveal", description: "After every subtitle is video stoped and hidden text is revealed.\nPress 'B' to repeat last subtitle." }
+		"normal": { name: "Normal playing mode", description: " Play without interruption for comfortable watching." },
+		"pausebefore": { name: "Pause (before)", description: " Before every subtitle is video paused.\n Press 'Space' to continue watching." },
+		"pauseafterandreveal": { name: "Pause and reveal (after)", description: " After every subtitle is video paused and hidden text is revealed.\n Press 'B' to repeat last subtitle.\n Press 'Space' to continue watching." },
+		"pauseafterrevealcontinue": { name: "Pause, reveal, continue", description: " Before every subtitle is video paused, hidden text is revealed and video continue automatically.\n Press 'B' to repeat last subtitle." },
 	};
 
 	let defaultMode = "normal";
