@@ -131,11 +131,11 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 
 	let subfilterStartDelay = 0; // delay in miliseconds
 	let subfilterEndDelay = 0;   // delay in miliseconds
-	let subfilterAutoContinueDelay = 0;
 
 	let subfilterPauseOnStart = false;
 	let subfilterPauseOnEnd = false;
 	let subfilterRevealAtEnd = false;
+	let subfilterAutoContinue = false;
 	let subfilterSkipToNextText = false;
 
 	let subfilterLastNewTextTimeoutID = 0;
@@ -215,6 +215,27 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		}
 	}
 
+	function GetCueDuration(cue) {
+		if (cue && cue.startTime && cue.endTime) {
+			let timeDifference = cue.endTime - cue.startTime;
+			return timeDifference;
+		}
+	}
+
+	function TemporarilyRevealHiddenWordsInSubs() {
+		let element = document.getElementById("subadub-custom-subs");
+		if (element) {
+			element.classList.add("subfilter-temporarily-show");
+		}
+	}
+
+	function StopRevealingHiddenWordsInSubs() {
+		let element = document.getElementById("subadub-custom-subs");
+		if (element) {
+			element.classList.remove("subfilter-temporarily-show");
+		}
+	}
+
 	trackElem.addEventListener("cuechange", function(event) {
 		//console.log(event);
 
@@ -229,7 +250,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		if (subfilter.watchingmodes.selected == "normal") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
-			subfilterAutoContinueDelay = 0;
+			subfilterAutoContinue = false;
 			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = false;
 			subfilterRevealAtEnd = false;
@@ -238,7 +259,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		else if (subfilter.watchingmodes.selected == "pausebefore") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
-			subfilterAutoContinueDelay = 0;
+			subfilterAutoContinue = false;
 			subfilterPauseOnStart = true;
 			subfilterPauseOnEnd = false;
 			subfilterRevealAtEnd = false;
@@ -247,7 +268,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		else if (subfilter.watchingmodes.selected == "pauseafterandreveal") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
-			subfilterAutoContinueDelay = 0;
+			subfilterAutoContinue = false;
 			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = true;
 			subfilterRevealAtEnd = true;
@@ -256,7 +277,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		else if (subfilter.watchingmodes.selected == "pauseafterrevealcontinue") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
-			subfilterAutoContinueDelay = 1500;
+			subfilterAutoContinue = true;
 			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = true;
 			subfilterRevealAtEnd = true;
@@ -265,7 +286,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		else if (subfilter.watchingmodes.selected == "onlydialogs") {
 			subfilterStartDelay = 0;
 			subfilterEndDelay = 0;
-			subfilterAutoContinueDelay = 0;
+			subfilterAutoContinue = false;
 			subfilterPauseOnStart = false;
 			subfilterPauseOnEnd = false;
 			subfilterRevealAtEnd = false;
@@ -289,10 +310,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			}
 
 			// there might be revealed-flag set on from last time, remove it
-			let element = document.getElementById("subadub-custom-subs");
-			if (element) {
-				element.classList.remove("subfilter-temporarily-show");
-			}
+			StopRevealingHiddenWordsInSubs();
 
 			subfilter.ui.lastCues = [...cuesToDisplay];
 
@@ -309,11 +327,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		// Old cue to hide
 		else {
 			if (subfilterRevealAtEnd) {
-
-				let element = document.getElementById("subadub-custom-subs");
-				if (element) {
-					element.classList.add("subfilter-temporarily-show");
-				}
+				TemporarilyRevealHiddenWordsInSubs();
 			}
 
 			if (subfilterLastClearTimeoutID) {
@@ -336,14 +350,23 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 						let videoEl = document.querySelector("video");
 						if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); }
 
-						// Should video continue automatically after some detal?
-						if (subfilterAutoContinueDelay > 0) {
-							setTimeout(function() {
-								player.play();
-							}, subfilterAutoContinueDelay);
+						// Should video continue automatically after some delay?
+						if (subfilterAutoContinue) {
+
+							if (subfilter.ui.lastCues && subfilter.ui.lastCues[0]) {
+								let cueDuration = GetCueDuration(subfilter.ui.lastCues[0])
+								if (cueDuration) {
+									let delay = Math.round(cueDuration / 2 * 1000); // estimate appropriate delay from last cue duration
+									//console.log("Calculated delay", delay);
+
+									setTimeout(function() {
+										player.play();
+									}, delay);
+								}
+							}
 						}
 					}
-					return;
+					return; // return here, to skip ClearCue for now
 				}
 			}
 
@@ -403,7 +426,7 @@ subfilter.watchingmodes.createModeSelector = function(parent, options) {
 		"normal": { name: "Normal watching mode", description: " Play without interruption for comfortable watching." },
 		"pausebefore": { name: "Pause (before)", description: " Before every subtitle is video paused.\n Press 'Space' to continue watching." },
 		"pauseafterandreveal": { name: "Pause and reveal (after)", description: " After every subtitle is video paused and hidden text is revealed.\n Press 'B' to repeat last subtitle.\n Press 'Space' to continue watching." },
-		"pauseafterrevealcontinue": { name: "Pause, reveal, continue", description: " Before every subtitle is video paused, hidden text is revealed and video continue automatically.\n Press 'B' to repeat last subtitle." },
+		"pauseafterrevealcontinue": { name: "Pause, reveal, continue", description: " After every subtitle is video paused, hidden text is revealed and video continue automatically.\n Press 'B' to repeat last subtitle." },
 		"onlydialogs": { name: "Dialogs only", description: " Watch only dialogs, skip else.\n Press 'B' to repeat last subtitle." },
 	};
 
