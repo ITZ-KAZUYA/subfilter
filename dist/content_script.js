@@ -477,6 +477,13 @@ scriptElem.text = `
 
   const originalStringify = JSON.stringify;
   JSON.stringify = function(value) {
+    // Need to call originalStringify first
+    // beause sometimes is "value" recursive structure
+    // in that case originalStringify raise an exception TypeError: Converting circular structure to JSON
+    // that will Netflix code handle
+    // Without this we would get stuck in infinite recursion in findSubtitlesProperty
+    originalStringify.apply(this, arguments);
+
     // Don't hardcode property names here because Netflix
     // changes them a lot; search instead
     let prop = findSubtitlesProperty(value);
