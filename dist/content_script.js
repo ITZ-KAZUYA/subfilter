@@ -477,12 +477,16 @@ scriptElem.text = `
 
   const originalStringify = JSON.stringify;
   JSON.stringify = function(value) {
-    // Need to call originalStringify first
-    // beause sometimes is "value" recursive structure
-    // in that case originalStringify raise an exception TypeError: Converting circular structure to JSON
-    // that will Netflix code handle
-    // Without this we would get stuck in infinite recursion in findSubtitlesProperty
-    originalStringify.apply(this, arguments);
+    if (value === undefined) {  // for compatibility JSON.stringify should not raise exception, which will happed if we call originalParse with "undefined" later
+      return originalStringify.apply(this, arguments);
+    }
+
+    // Many Netflix objects have .toJSON method that findSubtitlesProperty does not handle
+    // And for cyclic objects will findSubtitlesProperty ends in infinitive recursion, issue #27
+    // So here we convert object to string and back to JSON-object (that will correctly handle objects with .toJSON methods and cyclic references are removed in this process)
+
+    let jsonstring = originalStringify.apply(this, arguments);
+    value = originalParse.call(this, jsonstring);
 
     // Don't hardcode property names here because Netflix
     // changes them a lot; search instead
@@ -490,7 +494,7 @@ scriptElem.text = `
     if (prop) {
       prop.unshift(WEBVTT_FMT);
     }
-    return originalStringify.apply(this, arguments);
+    return originalStringify.call(this, value);
   };
 
   const originalParse = JSON.parse;
