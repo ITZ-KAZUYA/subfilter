@@ -350,7 +350,6 @@ subfilter.ui.cues = function() {
 					// 3) If there is a bigger difference from the last cue position, user probably seek video manually,
 					// 4) in that case find posion of the next cue from the current posion and seek to it,
 					// 5) if there is other cue, do nothing (probably close to the end of video, user will handle it).
-					let lastCues = lastCues;
 					if (lastCues && lastCues[0] && lastCues[0].endTime) {
 						let lastCueEndTime = lastCues[0].endTime;
 						let currentTime = player.getCurrentTime();
