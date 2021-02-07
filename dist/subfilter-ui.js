@@ -193,10 +193,11 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 	function SeekToNextCueAfterGivenCue(track, lastCues) {
 		//console.log("SeekToNextCueAfterGivenCue");
 
-		if (track && lastCues && lastCues[0] && lastCues[0].id) {
+		if (track && lastCues && lastCues[0] && lastCues[0].id && lastCues[0].endTime) {
 
 			let currentCueId = lastCues[0].id;
-			currentCueId = Number(currentCueId); // cue is a number formated as string, convert to number and check if conversion succeeded
+			let currentCueEndTime = lastCues[0].endTime;
+			currentCueId = Number(currentCueId); // cue ID is a number formated as string, convert to number and check if conversion succeeded
 
 			if (currentCueId && track.cues) {
 				let nextCue = track.cues[currentCueId];
@@ -204,12 +205,16 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 				if (nextCue && nextCue.startTime && typeof(nextCue.startTime) === "number" && nextCue.startTime > 0) {
 
 					let seekTo = nextCue.startTime;
-
 					//console.log("SeekToNextCueAfterGivenCue", seekTo);
+					//console.log("Seeking difference in s", nextCue.startTime - currentCueEndTime);
 
-					let player = subfilter.ui.getNetflixPlayer();
-					if (player) {
-						player.seek(seekTo*1000);
+					// Seek only if difference is big enough
+					// small seeking are useless and there was problem in Firefox with them (repeating current sub ad infinitum)
+					if ((nextCue.startTime - currentCueEndTime) > 1) {
+						let player = subfilter.ui.getNetflixPlayer();
+						if (player) {
+							player.seek(seekTo*1000);
+						}
 					}
 				}
 			}
@@ -414,6 +419,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 					let currentTime = player.getCurrentTime();
 					let timeDifferenceInMs = Math.abs(lastCueEndTime*1000 - currentTime);
 					//console.log("Time difference", timeDifferenceInMs);
+					//console.log("CurrentTime", currentTime);
 
 
 					// If current time differs more than 2 seconds from the last subtitle end time, then user was probably seeking
