@@ -41,6 +41,7 @@ window.addEventListener("blur", function(event) {
 }, false);
 
 
+subfilter.storageLastModeKey = "subfilter-modename";
 subfilter.ui = {};
 
 subfilter.ui.setRevealHiddenOn = function() {
@@ -129,19 +130,6 @@ subfilter.ui.repeatLastSubtitle = function() {
 
 subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTextToSimple) {
 
-	let subfilterStartDelay = 0; // delay in miliseconds
-	let subfilterEndDelay = 0;   // delay in miliseconds
-
-	let subfilterPauseOnStart = false;
-	let subfilterPauseOnEnd = false;
-	let subfilterRevealAtEnd = false;
-	let subfilterAutoContinue = false;
-	let subfilterSkipToNextText = false;
-
-	let subfilterLastNewTextTimeoutID = 0;
-	let subfilterLastClearTimeoutID = 0;
-
-
 	function VideoPlayListenerForCleaning(event) {
 		//console.log("VideoPlayListenerForCleaning", event);
 
@@ -158,10 +146,9 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		}
 	}
 
-	// Clear subtitle and reset timeout handler ID
+	// Clear subtitle
 	function ClearCue() {
 		EmptySubtitleArea();
-		subfilterLastClearTimeoutID = 0;
 	}
 
 	function ChangeCue(customSubsElem, track, cuesToDisplay) {
@@ -185,8 +172,6 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			cueElem.innerHTML = simpleText;
 			customSubsElem.appendChild(cueElem);
 		}
-
-		subfilterLastNewTextTimeoutID = 0;
 	}
 
 	// Seek to the 1st cue after lastCues
@@ -286,93 +271,27 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			cuesToDisplay.push(cue);
 		}
 
-		// Handle playing modes
-		if (subfilter.watchingmodes.selected == "normal") {
-			subfilterStartDelay = 0;
-			subfilterEndDelay = 0;
-			subfilterAutoContinue = false;
-			subfilterPauseOnStart = false;
-			subfilterPauseOnEnd = false;
-			subfilterRevealAtEnd = false;
-			subfilterSkipToNextText = false;
-		}
-		else if (subfilter.watchingmodes.selected == "pausebefore") {
-			subfilterStartDelay = 0;
-			subfilterEndDelay = 0;
-			subfilterAutoContinue = false;
-			subfilterPauseOnStart = true;
-			subfilterPauseOnEnd = false;
-			subfilterRevealAtEnd = false;
-			subfilterSkipToNextText = false;
-		}
-		else if (subfilter.watchingmodes.selected == "pauseafterandreveal") {
-			subfilterStartDelay = 0;
-			subfilterEndDelay = 0;
-			subfilterAutoContinue = false;
-			subfilterPauseOnStart = false;
-			subfilterPauseOnEnd = true;
-			subfilterRevealAtEnd = true;
-			subfilterSkipToNextText = false;
-		}
-		else if (subfilter.watchingmodes.selected == "pauseafterrevealcontinue") {
-			subfilterStartDelay = 0;
-			subfilterEndDelay = 0;
-			subfilterAutoContinue = true;
-			subfilterPauseOnStart = false;
-			subfilterPauseOnEnd = true;
-			subfilterRevealAtEnd = true;
-			subfilterSkipToNextText = false;
-		}
-		else if (subfilter.watchingmodes.selected == "onlydialogs") {
-			subfilterStartDelay = 0;
-			subfilterEndDelay = 0;
-			subfilterAutoContinue = false;
-			subfilterPauseOnStart = false;
-			subfilterPauseOnEnd = false;
-			subfilterRevealAtEnd = false;
-			subfilterSkipToNextText = true;
-		}
-		else {
-			console.error("Error. Unknown playing mode.", subfilter.watchingmodes.selected);
-		}
+		let mode = subfilter.watchingmodes.getCurrentMode();
+		let modeConfig = subfilter.watchingmodes.getCurrentModeConfiguration();
 
 		// New cue to show
 		if (cuesToDisplay.length > 0) {
-
-			if (subfilterLastNewTextTimeoutID) {
-				console.log("Error. Creating another New Text TimetOut when there is still older one.");
-			}
-
-			if (subfilterLastClearTimeoutID) {
-				console.log("Error. Creating another New Text TimetOut, but there is Clear Text timeout NOTFINISHED. Canceling timeout call.");
-				clearTimeout(subfilterLastClearTimeoutID);
-				subfilterLastClearTimeoutID = 0;
-			}
-
-			// there might be revealed-flag set on from last time, remove it
-			StopRevealingHiddenWordsInSubs();
-
+			StopRevealingHiddenWordsInSubs();  // there might be revealed-flag set on from last time, remove it
 			subfilter.ui.lastCues = [...cuesToDisplay];
+			ChangeCue(customSubsElem, event.target.track, cuesToDisplay);
 
-			// Calling display Cue now or delayed
-			subfilterLastNewTextTimeoutID = setTimeout(ChangeCue, subfilterStartDelay, customSubsElem, event.target.track, cuesToDisplay);
-
-			if (subfilterPauseOnStart) {
+			if (modeConfig.PauseOnStart) {
 				player.pause();
 			}
 		}
 		// Old cue to hide
 		else {
-			if (subfilterRevealAtEnd) {
+			if (modeConfig.RevealAtEnd) {
 				TemporarilyRevealHiddenWordsInSubs();
 			}
 
-			if (subfilterLastClearTimeoutID) {
-				console.log("Error. Creating another Clear Text TimetOut when there is still older one.");
-			}
-
 			// Should we pause video?
-			if (subfilterPauseOnEnd) {
+			if (modeConfig.PauseOnEnd) {
 
 				// Check if there is some hidden fragment in the current subtitle,
 				// pause video only if there is any
@@ -385,7 +304,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 					if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); }
 
 					// Should video continue automatically after some break?
-					if (subfilterAutoContinue) {
+					if (modeConfig.AutoContinue) {
 
 						// Estimate appropriate break time from the last cue duration
 						if (subfilter.ui.lastCues && subfilter.ui.lastCues[0]) {
@@ -400,13 +319,12 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 							}
 						}
 					}
-
-					return; // return here, to skip ClearCue for now
+					return; // return here, to skip ClearCue for now, we want to show cue during pause, we clear it after pause in VideoPlayListenerForCleaning
 				}
 			}
 
 			// Should we seek to the next subtitle?
-			if (subfilterSkipToNextText) {
+			if (modeConfig.SkipToNextText) {
 
 				// 1) Check the actual video position.
 				// 2) If it corresponds to the position of the last cue, seek to the position of the cue after the last cue.
@@ -421,7 +339,6 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 					//console.log("Time difference", timeDifferenceInMs);
 					//console.log("CurrentTime", currentTime);
 
-
 					// If current time differs more than 2 seconds from the last subtitle end time, then user was probably seeking
 					if (timeDifferenceInMs > 2000) {
 						ClearCue();
@@ -431,12 +348,11 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 						ClearCue();
 						SeekToNextCueAfterGivenCue(track, subfilter.ui.lastCues);
 					}
-					return; // no need to call ClearCue later
+					return; // return here, no need to call ClearCue later, we have already called it
 				}
 			}
 
-			// Calling to clear Cue now or delayed
-			subfilterLastClearTimeoutID = setTimeout(ClearCue, subfilterEndDelay);
+			ClearCue();
 		}
 
 	}, false);
@@ -444,49 +360,128 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 }
 
 
-subfilter.watchingmodes = {};
+//////////////////////////////////////////////////////
+// Manager for selecting/runing filters
+//
+subfilter.watchingmodes = function() {
 
-// Create select element and insert it inside "parent" element
-// "option" is object with attributes of "select" element  e.g. {"id": "filters", "class": "form-select mb-3" }
-subfilter.watchingmodes.createModeSelector = function(parent, options) {
-
-	const selectElem = document.createElement("select");
-	selectElem.title = "Select watching mode";
-
-	if (options) {
-		for (const item in options) {
-			selectElem.setAttribute(item, options[item]);
-		}
-	}
+	const defaultMode = "normal";
+	let currentMode = defaultMode;
 
 	let modes = {
 		"normal": { name: "Normal watching mode", description: " Play without interruption for comfortable watching." },
-		"pausebefore": { name: "Pause (before)", description: " Before every subtitle is video paused.\n Press 'Space' to continue watching." },
-		"pauseafterandreveal": { name: "Pause and reveal (after)", description: " After every subtitle is video paused and hidden text is revealed.\n Press 'B' to repeat last subtitle.\n Press 'Space' to continue watching." },
+		"pausebefore": { name: "Pause before sub", description: " Before every subtitle is video paused.\n Press 'Space' to continue watching." },
+		"pauseafterandreveal": { name: "Pause and reveal", description: " After every subtitle is video paused and hidden text is revealed.\n Press 'B' to repeat last subtitle.\n Press 'Space' to continue watching." },
 		"pauseafterrevealcontinue": { name: "Pause, reveal, continue", description: " After every subtitle is video paused, hidden text is revealed and video continue automatically.\n Press 'B' to repeat last subtitle." },
 		"onlydialogs": { name: "Dialogs only", description: " Watch only dialogs, skip else.\n Press 'B' to repeat last subtitle." },
 	};
 
-	let defaultMode = "normal";
-
-	for (const mode in modes) {
-		let optElem = document.createElement("option");
-		optElem.textContent = modes[mode].name;
-		optElem.title = modes[mode].name + " : \n" + modes[mode].description;
-		optElem.value = mode;
-		selectElem.appendChild(optElem);
+	function getCurrentMode() {
+		return currentMode;
 	}
 
-	selectElem.value = defaultMode;
-	// TODO make last selected mode persist between sessions and handle if the saved value is incorrect or deleted
+	function getCurrentModeConfiguration() {
+		const defaultConfiguration = {
+			AutoContinue: false,
+			PauseOnStart: false,
+			PauseOnEnd: false,
+			RevealAtEnd: false,
+			SkipToNextText: false,
+		}
 
-	subfilter.watchingmodes.selected = defaultMode;
+		let configuration = {...defaultConfiguration};
 
-	selectElem.addEventListener("change", function(e) {
-		subfilter.watchingmodes.selected = e.target.value;
+		// Handle differences
+		switch (currentMode) {
+			case "normal":
+				break;
+			case "pausebefore":
+				configuration.PauseOnStart = true;
+				break;
+			case "pauseafterandreveal":
+				configuration.PauseOnEnd = true;
+				configuration.RevealAtEnd = true;
+				break;
+			case "pauseafterrevealcontinue":
+				configuration.PauseOnEnd = true;
+				configuration.RevealAtEnd = true;
+				configuration.AutoContinue = true;
+				break;
+			case "onlydialogs":
+				configuration.SkipToNextText = true;
+				break;
+			default:
+				console.error("Unknown mode in getCurrentModeConfiguration.", {currentMode});
+		}
 
-		//localStorage.setItem(subfilter.storageLastFilterKey, e.target.value);
-	}, false);
+		return configuration;
+	}
 
-	parent.appendChild(selectElem);
-}
+	function selectDefaultMode() {
+		return selectMode(defaultMode);
+	}
+
+	function selectMode(name) {
+		if (name in modes) {
+			currentMode = name;
+		}
+		else {
+			console.error("Error. Unknow mode name.", {name});
+			throw "Error. Unknow mode name.";
+		}
+		return name;
+	}
+
+	function list() {
+		return { ...modes };
+	}
+
+	// Create select element and insert it inside "parent" element
+	// "option" is object with attributes of "select" element  e.g. {"id": "filters", "class": "form-select mb-3" }
+	function createModeSelector(parent, options) {
+
+		const selectElem = document.createElement("select");
+		selectElem.title = "Select watching mode";
+
+		if (options) {
+			for (const item in options) {
+				selectElem.setAttribute(item, options[item]);
+			}
+		}
+
+		for (const mode in modes) {
+			let optElem = document.createElement("option");
+			optElem.textContent = modes[mode].name;
+			optElem.title = modes[mode].name + " : \n" + modes[mode].description;
+			optElem.value = mode;
+			selectElem.appendChild(optElem);
+		}
+
+		// Set current mode to the last mode that we remember
+		let lastModeName = localStorage.getItem(subfilter.storageLastModeKey);
+		if (lastModeName) {
+			try {
+				selectMode(lastModeName);
+				selectElem.value = lastModeName;
+			}
+			catch (error) {
+				let defaultModeName = selectDefaultMode();
+				selectElem.value = defaultModeName;
+				localStorage.setItem(subfilter.storageLastModeKey, defaultModeName);
+				console.info("lastModeName contains wrong value, switching to default", lastModeName);
+			}
+		}
+
+		selectElem.addEventListener("change", function(e) {
+			selectMode(e.target.value);
+
+			localStorage.setItem(subfilter.storageLastModeKey, e.target.value);
+		}, false);
+
+		parent.appendChild(selectElem);
+	}
+
+
+	return {getCurrentMode, getCurrentModeConfiguration, selectMode, selectDefaultMode, list, createModeSelector};
+}();
+
