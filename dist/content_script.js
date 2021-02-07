@@ -302,7 +302,7 @@ scriptElem.text = `
       const downloadButtonElem = document.createElement('button');
       downloadButtonElem.id = DOWNLOAD_BUTTON_ID;
       downloadButtonElem.textContent = 'Download SRT';
-      downloadButtonElem.style.cssText = 'margin: 5px; border: none';
+      downloadButtonElem.style.cssText = 'margin: 5px; border: none; display: none';
       downloadButtonElem.addEventListener('click', function(e) {
         e.preventDefault();
         // console.log('download click');
