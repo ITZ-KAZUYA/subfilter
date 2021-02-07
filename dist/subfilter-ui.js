@@ -189,8 +189,9 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 		subfilterLastNewTextTimeoutID = 0;
 	}
 
-	function SeekToNextCue(track, lastCues) {
-		//console.log("SeekToNextCue");
+	// Seek to the 1st cue after lastCues
+	function SeekToNextCueAfterGivenCue(track, lastCues) {
+		//console.log("SeekToNextCueAfterGivenCue");
 
 		if (track && lastCues && lastCues[0] && lastCues[0].id) {
 
@@ -204,13 +205,41 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 
 					let seekTo = nextCue.startTime;
 
-					//console.log("SeekToNextCue", seekTo);
+					//console.log("SeekToNextCueAfterGivenCue", seekTo);
 
 					let player = subfilter.ui.getNetflixPlayer();
 					if (player) {
 						player.seek(seekTo*1000);
 					}
 				}
+			}
+		}
+	}
+
+	// Seek to the 1st cue after given position time (postion is in milisec)
+	function SeekToNextCueAfterGivenTime(track, position) {
+
+		// Search in all cues can be time consuming, do it only when there is significant timeDifferenceInMs
+		let cues = track.cues; // search for next cue
+		let nextCue;
+
+		for (const cue of cues) {
+
+			if (cue && cue.startTime) {
+				let startTime = cue.startTime * 1000; // convert to milisec
+				if (startTime > position) {
+					nextCue = cue;
+					break;
+				}
+			};
+		}
+		if (nextCue) {
+			//console.log("Found 1st next", nextCue.id, nextCue.startTime, nextCue.endTime, nextCue.text);
+			//console.log("Seeking difference", nextCue.startTime*1000 - position); // We can seek there
+
+			let player = subfilter.ui.getNetflixPlayer();
+			if (player) {
+				player.seek(Math.floor(nextCue.startTime*1000 - 1)); // seek 1 ms before startTime of next cue
 			}
 		}
 	}
@@ -238,6 +267,12 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 
 	trackElem.addEventListener("cuechange", function(event) {
 		//console.log(event);
+
+		let player = subfilter.ui.getNetflixPlayer();
+		if (!player) {
+			console.error("Error, oncuechange, Netflix player not found.");
+			return;
+		}
 
 		const track = event.target.track;
 		let cuesToDisplay = [];
@@ -318,10 +353,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			subfilterLastNewTextTimeoutID = setTimeout(ChangeCue, subfilterStartDelay, customSubsElem, event.target.track, cuesToDisplay);
 
 			if (subfilterPauseOnStart) {
-				let player = subfilter.ui.getNetflixPlayer();
-				if (player) {
-					player.pause();
-				}
+				player.pause();
 			}
 		}
 		// Old cue to hide
@@ -341,31 +373,29 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 				// pause video only if there is any
 				let hiddenFragments = document.querySelectorAll(".subfilter-hide");
 				if (hiddenFragments && hiddenFragments.length > 0) {
+					player.pause();
 
-					let player = subfilter.ui.getNetflixPlayer();
-					if (player) {
-						player.pause();
+					// need to hide cue when video start playing again, because we do not hide it now
+					let videoEl = document.querySelector("video");
+					if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); }
 
-						// need to hide cue when video start playing again, because we do not hide it now
-						let videoEl = document.querySelector("video");
-						if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); }
+					// Should video continue automatically after some break?
+					if (subfilterAutoContinue) {
 
-						// Should video continue automatically after some delay?
-						if (subfilterAutoContinue) {
+						// Estimate appropriate break time from the last cue duration
+						if (subfilter.ui.lastCues && subfilter.ui.lastCues[0]) {
+							let cueDuration = GetCueDuration(subfilter.ui.lastCues[0])
+							if (cueDuration) {
+								let delay = Math.round(cueDuration / 2 * 1000);
+								//console.log("Calculated delay", delay);
 
-							if (subfilter.ui.lastCues && subfilter.ui.lastCues[0]) {
-								let cueDuration = GetCueDuration(subfilter.ui.lastCues[0])
-								if (cueDuration) {
-									let delay = Math.round(cueDuration / 2 * 1000); // estimate appropriate delay from last cue duration
-									//console.log("Calculated delay", delay);
-
-									setTimeout(function() {
-										player.play();
-									}, delay);
-								}
+								setTimeout(function() {
+									player.play();	// watching will continue after short break
+								}, delay);
 							}
 						}
 					}
+
 					return; // return here, to skip ClearCue for now
 				}
 			}
@@ -373,28 +403,29 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 			// Should we seek to the next subtitle?
 			if (subfilterSkipToNextText) {
 
-				// Check what actual position is, and if corresponds to the position of last cue.
-				// Make SeekToNextCue only if it corresponds.
-				// Otherwise, user probably seeked video manually to different position and we should not seek now
-				// (because we will return to the last subtitle before user's seeking)
+				// 1) Check the actual video position.
+				// 2) If it corresponds to the position of the last cue, seek to the position of the cue after the last cue.
+				// 3) If there is a bigger difference from the last cue position, user probably seek video manually,
+				// 4) in that case find posion of the next cue from the current posion and seek to it,
+				// 5) if there is other cue, do nothing (probably close to the end of video, user will handle it).
 				let lastCues = subfilter.ui.lastCues;
 				if (lastCues && lastCues[0] && lastCues[0].endTime) {
 					let lastCueEndTime = lastCues[0].endTime;
+					let currentTime = player.getCurrentTime();
+					let timeDifferenceInMs = Math.abs(lastCueEndTime*1000 - currentTime);
+					//console.log("Time difference", timeDifferenceInMs);
 
-					let player = subfilter.ui.getNetflixPlayer();
-					if (player) {
-						let currentTime = player.getCurrentTime();
-						let timeDifferenceInMs = Math.abs(lastCueEndTime*1000 - currentTime);
-						//console.log("Time difference", timeDifferenceInMs);
 
-						// if current time differs more than 2 seconds from last subtitle time, user was probably seeking
-						// in that case continue playing normally
-						if (timeDifferenceInMs < 2000) {
-							ClearCue();
-							SeekToNextCue(track, subfilter.ui.lastCues);
-							return;
-						}
+					// If current time differs more than 2 seconds from the last subtitle end time, then user was probably seeking
+					if (timeDifferenceInMs > 2000) {
+						ClearCue();
+						SeekToNextCueAfterGivenTime(track, currentTime);
 					}
+					else {
+						ClearCue();
+						SeekToNextCueAfterGivenCue(track, subfilter.ui.lastCues);
+					}
+					return; // no need to call ClearCue later
 				}
 			}
 
