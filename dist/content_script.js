@@ -358,7 +358,7 @@ scriptElem.text = `
       customSubsElem.id = CUSTOM_SUBS_ELEM_ID;
       customSubsElem.style.cssText = 'position: absolute; bottom: 20vh; left: 0; right: 0; color: white; font-size: 3vw; text-align: center; user-select: text; -moz-user-select: text; z-index: 100; pointer-events: none';
 
-      subfilter.ui.makeCueChangeListener(trackElem, customSubsElem, vttTextToSimple);
+      subfilter.ui.cues.makeCueChangeListener(trackElem, customSubsElem, vttTextToSimple);
       /*
       trackElem.addEventListener('cuechange', function(e) {
         // Remove all children

@@ -16,7 +16,7 @@ document.addEventListener("keydown", function(event) {
 	}
 	// Pressing B will rewind movie back to begining of the last subtitle
 	else if (keyCode === "KeyB" && !event.altKey && !event.ctrlKey && !event.shiftKey && !event.metaKey) {
-		subfilter.ui.repeatLastSubtitle();
+		subfilter.ui.cues.repeatLastSubtitle();
 	}
 
 }, false);
@@ -45,7 +45,7 @@ subfilter.storageLastModeKey = "subfilter-modename";
 subfilter.ui = {};
 
 subfilter.ui.setRevealHiddenOn = function() {
-	let element = document.getElementById("subadub-custom-subs");
+	let element = subfilter.ui.getCustomSubElement();
 
 	if (element) {
 		element.classList.add("subfilter-force-show");
@@ -53,11 +53,16 @@ subfilter.ui.setRevealHiddenOn = function() {
 }
 
 subfilter.ui.setRevealHiddenOff = function() {
-	let element = document.getElementById("subadub-custom-subs");
+	let element = subfilter.ui.getCustomSubElement();
 
 	if (element) {
 		element.classList.remove("subfilter-force-show");
 	}
+}
+
+
+subfilter.ui.getCustomSubElement = function() {
+	return document.getElementById("subadub-custom-subs");
 }
 
 subfilter.ui.getNetflixPlayer = function() {
@@ -102,33 +107,13 @@ subfilter.ui.getNetflixPlayer = function() {
 	return player;
 }
 
-subfilter.ui.lastCues = [];
 
-subfilter.ui.repeatLastSubtitle = function() {
-	if (subfilter.ui.lastCues && subfilter.ui.lastCues.length && subfilter.ui.lastCues.length > 0 )	{
+subfilter.ui.cues = function() {
+	let trackElem;
+	let customSubsElem;
+	let vttTextToSimple;
+	let lastCues = [];
 
-		let lastCue = subfilter.ui.lastCues[0];
-
-		if (lastCue) {
-			let startTime = lastCue.startTime;
-
-			if (startTime && typeof(startTime) === "number" && startTime > 0) {
-				let player = subfilter.ui.getNetflixPlayer();
-
-				if (player) {
-					// subtitle time is in seconds, Netflix uses miliseconds;
-					// -1 is time just before cue appears to ensure that VideoPlayListenerForCleaning is called before subtitle raises cuechange event
-					player.seek(startTime*1000-1);
-					player.play();
-				}
-			}
-
-		}
-
-	}
-}
-
-subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTextToSimple) {
 
 	function VideoPlayListenerForCleaning(event) {
 		//console.log("VideoPlayListenerForCleaning", event);
@@ -152,6 +137,7 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 	}
 
 	function ChangeCue(customSubsElem, track, cuesToDisplay) {
+
 		//console.log("OnCueChangeHandler", customSubsElem, track, cuesToDisplay);
 		//console.log("cuesToDisplay", cuesToDisplay);
 
@@ -242,122 +228,159 @@ subfilter.ui.makeCueChangeListener = function (trackElem, customSubsElem, vttTex
 	}
 
 	function TemporarilyRevealHiddenWordsInSubs() {
-		let element = document.getElementById("subadub-custom-subs");
+		let element = subfilter.ui.getCustomSubElement();
 		if (element) {
 			element.classList.add("subfilter-temporarily-show");
 		}
 	}
 
 	function StopRevealingHiddenWordsInSubs() {
-		let element = document.getElementById("subadub-custom-subs");
+		let element = subfilter.ui.getCustomSubElement();
 		if (element) {
 			element.classList.remove("subfilter-temporarily-show");
 		}
 	}
 
-	trackElem.addEventListener("cuechange", function(event) {
-		//console.log(event);
+	function repeatLastSubtitle() {
+		if (lastCues && lastCues.length && lastCues.length > 0)	{
 
-		let player = subfilter.ui.getNetflixPlayer();
-		if (!player) {
-			console.error("Error, oncuechange, Netflix player not found.");
-			return;
-		}
+			let lastCue = lastCues[0];
 
-		const track = event.target.track;
-		let cuesToDisplay = [];
+			if (lastCue) {
+				let startTime = lastCue.startTime;
 
-		for (const cue of track.activeCues) {
-			cuesToDisplay.push(cue);
-		}
+				if (startTime && typeof(startTime) === "number" && startTime > 0) {
+					let player = subfilter.ui.getNetflixPlayer();
 
-		let mode = subfilter.watchingmodes.getCurrentMode();
-		let modeConfig = subfilter.watchingmodes.getCurrentModeConfiguration();
-
-		// New cue to show
-		if (cuesToDisplay.length > 0) {
-			StopRevealingHiddenWordsInSubs();  // there might be revealed-flag set on from last time, remove it
-			subfilter.ui.lastCues = [...cuesToDisplay];
-			ChangeCue(customSubsElem, event.target.track, cuesToDisplay);
-
-			if (modeConfig.PauseOnStart) {
-				player.pause();
+					if (player) {
+						//console.log("Current Time:", player.getCurrentTime(), "Seek to:", startTime*1000-1);
+						VideoPlayListenerForCleaning(); // call manually, otherwise might be VideoPlayListenerForCleaning called after displaying next cue and delete it
+						player.seek(startTime*1000-1); // subtitle time is in seconds, Netflix uses miliseconds;
+						player.play();
+					}
+				}
 			}
 		}
-		// Old cue to hide
-		else {
-			if (modeConfig.RevealAtEnd) {
-				TemporarilyRevealHiddenWordsInSubs();
+	}
+
+
+	function makeCueChangeListener(_trackElem, _customSubsElem, _vttTextToSimple) {
+		trackElem = _trackElem;
+		customSubsElem = _customSubsElem;
+		vttTextToSimple = _vttTextToSimple;
+
+		trackElem.addEventListener("cuechange", function(event) {
+			//console.log(event);
+			//if (event.target.track.activeCues[0]) console.log(event.target.track.activeCues[0].id);
+
+			let player = subfilter.ui.getNetflixPlayer();
+			if (!player) {
+				console.error("Error, oncuechange, Netflix player not found.");
+				return;
 			}
 
-			// Should we pause video?
-			if (modeConfig.PauseOnEnd) {
+			const track = event.target.track;
+			let cuesToDisplay = [];
 
-				// Check if there is some hidden fragment in the current subtitle,
-				// pause video only if there is any
-				let hiddenFragments = document.querySelectorAll(".subfilter-hide");
-				if (hiddenFragments && hiddenFragments.length > 0) {
+			for (const cue of track.activeCues) {
+				cuesToDisplay.push(cue);
+			}
+
+			let mode = subfilter.watchingmodes.getCurrentMode();
+			let modeConfig = subfilter.watchingmodes.getCurrentModeConfiguration();
+
+			// New cue to show
+			if (cuesToDisplay.length > 0) {
+				//console.log("Next cue text", event.target.track.activeCues[0].id, event.target.track.activeCues[0].text);
+
+				StopRevealingHiddenWordsInSubs();  // there might be revealed-flag set on from last time, remove it
+				lastCues = [...cuesToDisplay];
+				ChangeCue(customSubsElem, event.target.track, cuesToDisplay);
+
+				if (modeConfig.PauseOnStart) {
 					player.pause();
+				}
+			}
+			// Old cue to hide
+			else {
+				//console.log("Remove cue text");
 
-					// need to hide cue when video start playing again, because we do not hide it now
-					let videoEl = document.querySelector("video");
-					if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); }
+				if (modeConfig.RevealAtEnd) {
+					TemporarilyRevealHiddenWordsInSubs();
+				}
 
-					// Should video continue automatically after some break?
-					if (modeConfig.AutoContinue) {
+				// Should we pause video?
+				if (modeConfig.PauseOnEnd) {
 
-						// Estimate appropriate break time from the last cue duration
-						if (subfilter.ui.lastCues && subfilter.ui.lastCues[0]) {
-							let cueDuration = GetCueDuration(subfilter.ui.lastCues[0])
-							if (cueDuration) {
-								let delay = Math.round(cueDuration / 2 * 1000);
-								//console.log("Calculated delay", delay);
+					// Check if there is some hidden fragment in the current subtitle,
+					// pause video only if there is any
+					let hiddenFragments = document.querySelectorAll(".subfilter-hide");
+					if (hiddenFragments && hiddenFragments.length > 0) {
+						player.pause();
 
-								setTimeout(function() {
-									player.play();	// watching will continue after short break
-								}, delay);
+						// need to hide cue when video start playing again, because we do not hide it now
+						let videoEl = document.querySelector("video");
+						if (videoEl) { videoEl.addEventListener("play", VideoPlayListenerForCleaning, false); }
+
+						// Should video continue automatically after some break?
+						if (modeConfig.AutoContinue) {
+
+							// Estimate appropriate break time from the last cue duration
+							if (lastCues && lastCues[0]) {
+								let cueDuration = GetCueDuration(lastCues[0])
+								if (cueDuration) {
+									let delay = Math.round(cueDuration / 2 * 1000);
+									//console.log("Calculated delay", delay);
+
+									setTimeout(function() {
+										player.play();	// watching will continue after short break
+									}, delay);
+								}
 							}
 						}
+						return; // return here, to skip ClearCue for now, we want to show cue during pause, we clear it after pause in VideoPlayListenerForCleaning
 					}
-					return; // return here, to skip ClearCue for now, we want to show cue during pause, we clear it after pause in VideoPlayListenerForCleaning
 				}
+
+				// Should we seek to the next subtitle?
+				if (modeConfig.SkipToNextText) {
+
+					// 1) Check the actual video position.
+					// 2) If it corresponds to the position of the last cue, seek to the position of the cue after the last cue.
+					// 3) If there is a bigger difference from the last cue position, user probably seek video manually,
+					// 4) in that case find posion of the next cue from the current posion and seek to it,
+					// 5) if there is other cue, do nothing (probably close to the end of video, user will handle it).
+					let lastCues = lastCues;
+					if (lastCues && lastCues[0] && lastCues[0].endTime) {
+						let lastCueEndTime = lastCues[0].endTime;
+						let currentTime = player.getCurrentTime();
+						let timeDifferenceInMs = Math.abs(lastCueEndTime*1000 - currentTime);
+						//console.log("Time difference", timeDifferenceInMs);
+						//console.log("CurrentTime", currentTime);
+
+						// If current time differs more than 2 seconds from the last subtitle end time, then user was probably seeking
+						if (timeDifferenceInMs > 2000) {
+							ClearCue();
+							SeekToNextCueAfterGivenTime(track, currentTime);
+						}
+						else {
+							ClearCue();
+							SeekToNextCueAfterGivenCue(track, lastCues);
+						}
+						return; // return here, no need to call ClearCue later, we have already called it
+					}
+				}
+
+				ClearCue();
 			}
 
-			// Should we seek to the next subtitle?
-			if (modeConfig.SkipToNextText) {
+		}, false);
+	}
 
-				// 1) Check the actual video position.
-				// 2) If it corresponds to the position of the last cue, seek to the position of the cue after the last cue.
-				// 3) If there is a bigger difference from the last cue position, user probably seek video manually,
-				// 4) in that case find posion of the next cue from the current posion and seek to it,
-				// 5) if there is other cue, do nothing (probably close to the end of video, user will handle it).
-				let lastCues = subfilter.ui.lastCues;
-				if (lastCues && lastCues[0] && lastCues[0].endTime) {
-					let lastCueEndTime = lastCues[0].endTime;
-					let currentTime = player.getCurrentTime();
-					let timeDifferenceInMs = Math.abs(lastCueEndTime*1000 - currentTime);
-					//console.log("Time difference", timeDifferenceInMs);
-					//console.log("CurrentTime", currentTime);
 
-					// If current time differs more than 2 seconds from the last subtitle end time, then user was probably seeking
-					if (timeDifferenceInMs > 2000) {
-						ClearCue();
-						SeekToNextCueAfterGivenTime(track, currentTime);
-					}
-					else {
-						ClearCue();
-						SeekToNextCueAfterGivenCue(track, subfilter.ui.lastCues);
-					}
-					return; // return here, no need to call ClearCue later, we have already called it
-				}
-			}
+	return {makeCueChangeListener, repeatLastSubtitle};
+}();
 
-			ClearCue();
-		}
-
-	}, false);
-
-}
 
 
 //////////////////////////////////////////////////////
