@@ -1,8 +1,8 @@
  {
   "manifest_version": 2,
   "name": "Subfilter for Netflix",
-  "description" : "Watch Netflix with filtered subtitles for foreign language study",
-  "version": "0.4.0",
+  "description" : "Watch your favourite series on Netflix with filtered subtitles and improve foreign language at the same time.",
+  "version": "0.5.0",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

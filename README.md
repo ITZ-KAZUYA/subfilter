@@ -50,7 +50,7 @@ Please connect with me and stay it touch. You can do it in [Discussions](https:/
 
 ### Process to Publish a New Version
 
-- make changes to `dist/content_script.js`
+- make changes to `dist/*`
 - bump version number in `dist/manifest.json`
 - (best to commit+push these changes, but not required)
 - run `archive.sh` to produce new `subadub.zip`
