@@ -181,7 +181,7 @@ subfilter.ui.cues = function() {
 
 					// Seek only if difference is big enough
 					// small seeking are useless and there was problem in Firefox with them (repeating current sub ad infinitum)
-					if ((nextCue.startTime - currentCueEndTime) > 1) {
+					if ((nextCue.startTime - currentCueEndTime) > 2) {
 						let player = subfilter.ui.getNetflixPlayer();
 						if (player) {
 							player.seek(seekTo*1000);
