@@ -312,10 +312,12 @@ subfilter.ui.cues = function() {
 				// Should we pause video?
 				if (modeConfig.PauseOnEnd) {
 
-					// Check if there is some hidden fragment in the current subtitle,
-					// pause video only if there is any
+					// Pause video:
+					// 1) When there are some hidden fragments in the current subtitle,
+					// 2) or current filter is "nofilter" (that doesn't have any fragments)
 					let hiddenFragments = document.querySelectorAll(".subfilter-hide");
-					if (hiddenFragments && hiddenFragments.length > 0) {
+
+					if ((hiddenFragments && hiddenFragments.length > 0) || (subfilter.filters.getCurrentFilter() == "nofilter")) {
 						player.pause();
 
 						// need to hide cue when video start playing again, because we do not hide it now

@@ -414,6 +414,10 @@ subfilter.filters = function() {
 			return { ...listing };
 		}
 
+		function getCurrentFilter() {
+			return currentFilter;
+		}
+
 		// register custom filter
 		function register(key, name, description, run) {
 			if (key && typeof key === "string" && name && typeof name === "string" && description && typeof description === "string" && run && typeof run == "function") {
@@ -972,7 +976,7 @@ subfilter.filters = function() {
 			return transformed;			
 		}
 
-	return {run, runByName, select, selectDefaultFilter, list, register, render, renderIntoPlainAscii};
+	return {run, runByName, select, selectDefaultFilter, getCurrentFilter, list, register, render, renderIntoPlainAscii};
 }();
 
 subfilter.stopWords = {};
