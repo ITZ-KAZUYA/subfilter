@@ -259,9 +259,9 @@ scriptElem.text = `
     const subsElem = document.getElementById(CUSTOM_SUBS_ELEM_ID);
     if (subsElem) {
       if (showSubsState) {
-        subsElem.style.visibility = 'visible';
+        subsElem.classList.remove('subfilter-hide-all');
       } else {
-        subsElem.style.visibility = 'hidden';
+        subsElem.classList.add('subfilter-hide-all');
       }
     }
   }

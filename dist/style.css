@@ -1,12 +1,17 @@
 #subadub-custom-subs     { }
 #subadub-custom-subs div { }
+#subadub-custom-subs.subfilter-hide-all { visibility: hidden; } /* UI button 'HIDE SUB/SHOW SUB' sets/removes .subfilter-hide-all */
 
 /* TODO make style changeable via settings */
-#subadub-custom-subs span.subfilter-hide-wrap { border-bottom: solid 2px gray; }
+#subadub-custom-subs span.subfilter-hide-wrap { border-bottom: solid 2px gray; color: gray; } /* span wraped around hidden fragments */
+#subadub-custom-subs span.subfilter-hide      { visibility: hidden; }                         /* hidden <del>fragments</del> in subtitles */
 
-
-#subadub-custom-subs span.subfilter-hide                      { visibility: hidden; }
-
-#subadub-custom-subs:hover span.subfilter-hide,
-#subadub-custom-subs.subfilter-force-show span.subfilter-hide,
-#subadub-custom-subs.subfilter-temporarily-show span.subfilter-hide { visibility: visible; color: gray; }
+/*
+ * Revealing hidden fragments
+ * There are several ways of revealing hidden fragments (mouse, keyboard...),
+ * they should work only when .subfilter-hide-all is not set
+ */
+#subadub-custom-subs:hover:not(.subfilter-hide-all) span.subfilter-hide,                      /* mouse over over subtitles reveals hidden fragments */
+#subadub-custom-subs.subfilter-force-show:not(.subfilter-hide-all) span.subfilter-hide,       /* Ctrl key reveals hidden fragments  */
+#subadub-custom-subs.subfilter-temporarily-show:not(.subfilter-hide-all) span.subfilter-hide  /* Some watching modes reveals hidden fragments */
+{ visibility: visible; }
