@@ -53,5 +53,8 @@ Please connect with me and stay it touch. You can do it in [Discussions](https:/
 - make changes to `dist/*`
 - bump version number in `dist/manifest.json`
 - (best to commit+push these changes, but not required)
+- tag [new release](https://github.com/met/subfilter/releases/)
+- update [Changelog](https://github.com/met/subfilter/wiki/Changelog)
+- close finished [Milestone](https://github.com/met/subfilter/milestones), create a new Milestone and move any unfinished issues from the old Milestone to the new one
 - run `archive.sh` to produce new `subadub.zip`
 - upload `subadub.zip` to [Chrome Web Store](https://chrome.google.com/webstore/developer/dashboard) and [Firefox Add-on Developer Hub](https://addons.mozilla.org/en-US/developers/)
